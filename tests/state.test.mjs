@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { loadState, canVisitRoom, collectGift, giveGift, remember } from '../js/state.js';
+const from = value => loadState({ getItem: () => JSON.stringify(value) });
+
+test('new visitor and unavailable/corrupt storage can start safely', () => {
+  assert.equal(loadState(null).character, null);
+  assert.equal(loadState({getItem:()=>'{broken'}).character, null);
+  assert.deepEqual(from({version:999}).pets, []);
+});
+test('saved progress is restored but invalid IDs and unsafe values are discarded', () => {
+  const state=from({version:1,character:'thea',met:['abby','abby','invalid'],pets:['zephyr'],visited:['library','unknown'],read:['stars'],catches:-3,outfit:'script',diary:'a'.repeat(4500)});
+  assert.equal(state.character,'thea');assert.deepEqual(state.met,['abby']);assert.deepEqual(state.pets,['zephyr']);
+  assert.deepEqual(state.visited,['library']);assert.deepEqual(state.read,['stars']);assert.equal(state.catches,0);
+  assert.equal(state.outfit,'uniform');assert.equal(state.diary.length,4000);
+});
+test('a room requires a prior encounter, except for the selected character', () => {
+  const state=from({version:1,character:'abby'});
+  assert.equal(canVisitRoom(state,'abby'),true);assert.equal(canVisitRoom(state,'gaile'),false);
+  remember(state.met,'gaile');assert.equal(canVisitRoom(state,'gaile'),true);
+});
+test('a collected gift can be given only once and is consumed', () => {
+  const state=loadState(null);
+  assert.equal(giveGift(state,'thea'),false);
+  collectGift(state,'thea');collectGift(state,'thea');assert.deepEqual(state.inventory,['thea']);
+  assert.equal(giveGift(state,'thea'),true);assert.deepEqual(state.inventory,[]);assert.deepEqual(state.gifts,['thea']);
+  assert.equal(giveGift(state,'thea'),false);
+});
+test('progress remains stable across save/reload and character switching', () => {
+  const state=from({version:1,character:'abby',diary:'今天遇見了一位新朋友。',catches:2});
+  remember(state.read,'letter');remember(state.read,'letter');remember(state.pets,'gaile');
+  state.character='zephyr';const restored=from(state);
+  assert.equal(restored.character,'zephyr');assert.deepEqual(restored.read,['letter']);
+  assert.deepEqual(restored.pets,['gaile']);assert.equal(restored.diary,state.diary);assert.equal(restored.catches,2);
+});
