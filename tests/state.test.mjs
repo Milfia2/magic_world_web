@@ -14,10 +14,13 @@ test('saved progress is restored but invalid IDs and unsafe values are discarded
   assert.deepEqual(state.visited,['library']);assert.deepEqual(state.read,['stars']);assert.equal(state.catches,0);
   assert.equal(state.outfit,'uniform');assert.equal(state.diary.length,4000);
 });
-test('a room requires a prior encounter, except for the selected character', () => {
+test('a prior encounter is not a room key; an active visit or owning the room is required', () => {
   const state=from({version:1,character:'abby'});
   assert.equal(canVisitRoom(state,'abby'),true);assert.equal(canVisitRoom(state,'gaile'),false);
-  remember(state.met,'gaile');assert.equal(canVisitRoom(state,'gaile'),true);
+  remember(state.met,'gaile');assert.equal(canVisitRoom(state,'gaile'),false);
+  assert.equal(canVisitRoom(state,'gaile',{host:'gaile',guest:'abby'}),true);
+  assert.equal(canVisitRoom(state,'gaile',{host:'gaile',guest:'thea'}),false);
+  assert.equal(canVisitRoom(state,'unknown'),false);
 });
 test('a collected gift can be given only once and is consumed', () => {
   const state=loadState(null);

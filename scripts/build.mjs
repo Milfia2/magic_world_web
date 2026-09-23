@@ -6,7 +6,7 @@ await mkdir(out, { recursive: true });
 for (const file of ['index.html', 'styles.css', 'scene.css', 'favicon.svg']) {
   await copyFile(resolve(root, file), resolve(out, file));
 }
-for (const folder of ['js', 'assets']) {
+for (const folder of ['js', 'assets', 'content']) {
   await cp(resolve(root, folder), resolve(out, folder), { recursive: true });
 }
 await writeFile(resolve(out, '.nojekyll'), '');

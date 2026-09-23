@@ -6,7 +6,7 @@ export function registerAgentTools({ readProgress, navigate }) {
   const tools = [
     {
       name: 'read_campus_progress', title: '查看校園探索進度',
-      description: 'Read the selected character, unlocked rooms and visited locations. Does not include private diary text.',
+      description: 'Read the selected character, encountered friends and visited locations. Encounters do not grant room access. Does not include diary text.',
       inputSchema: { type: 'object', properties: {}, additionalProperties: false },
       annotations: { readOnlyHint: true, untrustedContentHint: false },
       execute: () => readProgress(),

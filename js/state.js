@@ -18,7 +18,9 @@ export function loadState(storage) {
   } catch { return defaults; }
 }
 export function remember(list, id) { if (!list.includes(id)) list.push(id); }
-export function canVisitRoom(state, id) { return state.character === id || state.met.includes(id); }
+export function canVisitRoom(state, id, visit = null) {
+  return ids.includes(id) && !!state.character && (state.character === id || (visit?.host === id && visit.guest === state.character));
+}
 export function collectGift(state, id) { remember(state.inventory, id); }
 export function giveGift(state, id) {
   if (!state.inventory.includes(id) || state.gifts.includes(id)) return false;
