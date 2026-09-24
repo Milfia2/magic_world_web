@@ -6,13 +6,13 @@ export const characters = [
   { id: 'zephyr', name: '澤菲爾·哈特', short: '澤菲爾', english: 'ZEPHYR HART', house: '蛇院', schoolHouse: 'Slytherin', virtue: '牽掛', color: '#81b59f', intro: '「走啊，去哪都行。」', gift: '銀色緞帶', height:183, birthday:'7 月 6 日', subject:'黑魔法防禦術', position:'魁地奇打擊手', greeting:'走啊，去哪都行。我今天沒什麼安排。……你不會又打算一個人去吧？' },
 ];
 export const places = [
-  { id: 'atrium', name: '校園中庭', en: 'THE COURTYARD', desc: '從一場不期而遇，開始今天的冒險。', icon: '✧', x: 49, y: 53 },
-  { id: 'library', name: '圖書館', en: 'THE LIBRARY', desc: '翻開書頁，收藏還沒說完的故事。', icon: '▤', x: 20, y: 26 },
-  { id: 'classroom', name: '教室', en: 'THE CLASSROOM', desc: '認識魔法世界，也認識彼此。', icon: '◇', x: 15, y: 51 },
+  { id: 'atrium', name: '校園中庭', en: 'THE COURTYARD', desc: '開始今天的冒險。', icon: '✧', x: 49, y: 53 },
+  { id: 'library', name: '圖書館', en: 'THE LIBRARY', desc: '校園小秘辛', icon: '▤', x: 20, y: 26 },
+  { id: 'classroom', name: '教室', en: 'THE CLASSROOM', desc: '認識魔法世界', icon: '◇', x: 15, y: 51 },
   { id: 'observatory', name: '天文臺', en: 'THE OBSERVATORY', desc: '抬頭看看，遠方的天空今天是什麼模樣？', icon: '☾', x: 50, y: 17 },
   { id: 'dorms', name: '學院宿舍', en: 'THE DORMITORIES', desc: '燈火亮起的地方，有人等著你的故事。', icon: '⌂', x: 79, y: 27 },
   { id: 'pitch', name: '魁地奇球場', en: 'THE QUIDDITCH PITCH', desc: '握緊掃帚，追上那一道金色的光。', icon: '⚑', x: 86, y: 53 },
-  { id: 'forest', name: '禁忌森林', en: 'THE FORBIDDEN WOODS', desc: '放輕腳步，樹影裡藏著毛茸茸的新朋友。', icon: '♧', x: 81, y: 84 },
+  { id: 'forest', name: '禁忌森林', en: 'THE FORBIDDEN WOODS', desc: '樹林裡似乎有什麼東西在注視著你', icon: '♧', x: 81, y: 84 },
   { id: 'village', name: '活米村', en: 'HOGSMEADE', desc: '為下一次相遇，換上一點不同的心情。', icon: '♙', x: 17, y: 84 },
 ];
 export const stories = [
@@ -22,7 +22,7 @@ export const stories = [
 ];
 export const lore = [
   ['四個學院', '獅院珍視勇氣，獾院相信善意，鷹院追尋知識，蛇院懷抱志向。不同的起點，都能通往同一場友誼。'],
-  ['校園探索', '四人原本就是熟識的朋友，分屬不同學院。先在場景找到本人，交談後選擇「去房間看看」同行作客；離開後需重新邀約，不會永久解鎖房間。'],
+  ['校園探索', '四人原本就是熟識的朋友，分屬不同學院。在場景裡找到朋友、打聲招呼，就能約好到他的宿舍作客。'],
   ['相遇與收藏', '在宿舍找到的小物可以送給朋友。森林裡的小貓、圖書館讀過的故事，也會成為你的旅行紀錄。'],
 ];
 export const asset = (name) => `./assets/${name}.webp`;

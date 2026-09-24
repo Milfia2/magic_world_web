@@ -1,5 +1,5 @@
 import { characters, character, places, stories, lore, asset } from './data.js';
-import { loadState, STORAGE_KEY, remember, collectGift, giveGift } from './state.js';
+import { loadState, STORAGE_KEY, remember, collectGift, giveGift, beginGreeting, resetProgress } from './state.js';
 import { registerAgentTools } from './agent-tools.js';
 import { sceneObjects, roomObjects, projectObject, scatterCharacters } from './scene-layout.js';
 import { createFlightController } from './flight.js';
@@ -8,7 +8,9 @@ import { residentsForScene, scheduleWindow } from './schedule.js';
 import { CHARACTER_SCALE } from './character-spawns.js';
 import { createRoomAccess } from './room-access.js';
 import { readDiary, ROOM_HOST_POINT, ROOM_REACTIONS } from './room-content.js';
-import { mountAmbientSpeech } from './ambient-dialogue.js';
+import { ambientLine, clickedDialogue, distinctDialogue } from './ambient-dialogue.js';
+import { greetingFor } from './greetings.js';
+import { mountHeadConversation } from './head-conversation.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#dialog');
@@ -16,6 +18,12 @@ let storage;
 try { storage = window.localStorage; } catch { storage = null; }
 const state = loadState(storage);
 const roomAccess = createRoomAccess();
+const lastSmallTalk = new Map();
+const lastHeadDialogue = new Map();
+let headConversation = null;
+function closeHeadConversation() {
+  headConversation?.();headConversation=null;roomAccess.dismiss();
+}
 let chosen = state.character || 'abby';
 let cleanups = [];
 let toastTimer;
@@ -34,15 +42,29 @@ function go(route) { if (currentRoute() === route) render(); else location.hash 
 function period() { const h = new Date().getHours(); return h >= 6 && h < 18 ? 'day' : 'night'; }
 function header(route) {
   const c = character(state.character);
-  return `<header class="topbar"><a class="brand" href="#/${c ? 'atrium' : 'select'}"><span class="ornament" aria-hidden="true">✧</span><span class="brand-title">魔法日常<small>MAGIC WORLD</small></span></a><nav class="top-nav" aria-label="主要導覽"><a class="${route === 'map' ? 'active' : ''}" href="#/map">校園地圖</a><a class="${route === 'hall' ? 'active' : ''}" href="#/hall">Q 版大廳</a>${button('journal', '角色日記', '', 'text-button')}</nav><div class="profile">${c ? `<img src="${asset(c.id + '-chibi')}" alt=""><a href="#/select">${c.short}<small>${c.house} · 切換角色</small></a>` : '<span class="clock">一段日常，一點魔法</span>'}</div></header>`;
+  return `<header class="topbar"><a class="brand" href="#/${c ? 'atrium' : 'select'}"><span class="ornament" aria-hidden="true">✧</span><span class="brand-title">魔法日常<small>MAGIC WORLD</small></span></a><nav class="top-nav" aria-label="主要導覽"><a class="${route === 'map' ? 'active' : ''}" href="#/map">校園地圖</a><a class="${route === 'hall' ? 'active' : ''}" href="#/hall">Q 版大廳</a>${button('journal', '角色日記', '', 'text-button')}${button('reset-progress', '重置紀錄', '', 'text-button reset-button')}</nav><div class="profile">${c ? `<img src="${asset(c.id + '-chibi')}" alt=""><a href="#/select">${c.short}<small>${c.house} · 切換角色</small></a>` : '<span class="clock">一段日常，一點魔法</span>'}</div></header>`;
 }
 function selection() {
   return `<main id="main" class="selection"><div class="selection-head"><span class="eyebrow">YOUR STORY BEGINS HERE</span><h1>角色選擇</h1><p>選擇帶入角色</p></div><div class="character-grid" role="group" aria-label="選擇帶入角色">${characters.map(c => `<button class="character-card ${c.id === chosen ? 'selected' : ''}" style="--house:${c.color}" data-action="choose" data-value="${c.id}" aria-pressed="${c.id === chosen}"><span class="house-label">${c.house} · ${c.virtue}</span><div class="portrait"><img src="${asset(c.id)}" alt="${c.name}" fetchpriority="high"></div><h2>${c.name}</h2><span class="english">${c.english}</span><p class="quote">${c.intro}</p></button>`).join('')}</div><div class="selection-footer">${button('enter', `以${character(chosen).short}的身分，進入學院　→`, '', 'primary')}<p>探索紀錄會保存在這個瀏覽器，隨時可以回來。</p><div class="secondary-links">${link('map', '先看看校園地圖', '')}${link('hall', '前往 Q 版大廳 ↗', '')}${button('about', '關於這個世界', '', 'text-button')}</div></div></main>`;
 }
 function showDialog(title, body, actions = '') {
+  closeHeadConversation();
+  dialog.classList.remove('room-conversation');
+  document.querySelector('.immersive')?.classList.remove('room-speaking');
   dialog.innerHTML = `<div class="dialog-head"><div><span class="eyebrow">MAGIC WORLD</span><h2 id="dialog-title">${title}</h2></div>${button('close', '×', '', 'close')}</div><div class="dialog-body">${body}</div>${actions ? `<div class="dialog-actions">${actions}</div>` : ''}`;
   dialog.querySelector('.close').setAttribute('aria-label', '關閉對話視窗');
   if (!dialog.open) dialog.showModal();
+}
+function showRoomConversation(id, title, body, actions = '') {
+  closeHeadConversation();
+  const c=character(id);
+  if(!c||currentRoute()!==`room/${id}`||!roomAccess.canEnter(state,id))return;
+  dialog.classList.add('room-conversation');
+  document.querySelector('.immersive')?.classList.add('room-speaking');
+  dialog.innerHTML=`<div class="conversation-bust" aria-hidden="true"><img src="${asset(id)}" alt=""></div><section class="conversation-panel"><div class="dialog-head"><div><span class="eyebrow">${esc(title)}</span><h2 id="dialog-title">${c.name}</h2></div>${button('close','×','','close')}</div><div class="dialog-body">${body}</div><div class="dialog-actions">${actions}${button('close','結束對話')}</div></section>`;
+  dialog.querySelector('.close').setAttribute('aria-label','關閉對話視窗');
+  if(!dialog.open)dialog.showModal();
+  dialog.querySelector('.close').focus({preventScroll:true});
 }
 function mapView() {
   return `<main id="main" class="map-layout"><div class="map-heading"><div><span class="eyebrow">THE MARAUDER'S NOTEBOOK</span><h1>把日常，走成一場冒險。</h1><p>點選地圖上的地點，看看今天會遇見誰。</p></div>${link(state.character ? 'atrium' : 'select', state.character ? '返回中庭' : '選擇角色')}</div><div class="map-grid"><div class="map-canvas"><img src="${asset('map')}" alt="魔法學院地圖，標示八個可探索地點">${places.map(p => `<a href="#/${p.id}" class="map-pin" style="--x:${p.x}%;--y:${p.y}%" aria-label="前往${p.name}">${state.visited.includes(p.id) ? '✦ ' : ''}${p.name}</a>`).join('')}</div><aside class="map-aside"><section class="panel"><span class="eyebrow">YOUR JOURNEY</span><h2>探索足跡</h2><div class="stats"><div class="stat"><strong>${state.visited.length}/8</strong><small>造訪地點</small></div><div class="stat"><strong>${state.met.length}/4</strong><small>交談朋友</small></div><div class="stat"><strong>${state.pets.length}/4</strong><small>貓咪夥伴</small></div></div><nav class="destination-list" aria-label="地點清單">${places.map(p => link(p.id, `<i>${p.icon}</i>${p.name}<span>↗</span>`, '')).join('')}</nav></section><section class="panel"><span class="eyebrow">A LITTLE REMINDER</span><p>想拜訪朋友的房間，請先在校園找到本人，交談後選「去房間看看」。離開後需重新邀約，不能直接闖入。</p></section></aside></div></main>`;
@@ -120,7 +142,6 @@ function arrangeScene() {
   scatterScene=position;
   const resize=new ResizeObserver(position);resize.observe(canvas);
   image.addEventListener('load',position); position();
-  cleanups.push(mountAmbientSpeech(canvas));
   cleanups.push(()=>{resize.disconnect();image.removeEventListener('load',position);scatterScene=()=>{};});
 }
 
@@ -133,6 +154,7 @@ function weatherDialog() {
 }
 
 function render() {
+  closeHeadConversation();
   cleanups.forEach(fn => fn()); cleanups = []; snitchActive = false;
   dialog.close();
   let route = currentRoute();
@@ -161,14 +183,34 @@ function render() {
 }
 function talk(id, topic = 'scene', hall = false) {
   const c = character(id); if (!c) return;
+  if(id===state.character)return;
+  closeHeadConversation();
   if (!hall && state.character && id !== state.character) { remember(state.met,id); save(); }
   const visibleIds = !hall && !pitchGame && document.querySelector('.immersive')?.dataset.scene === currentRoute()
     ? [...document.querySelectorAll('.standing-npc')].map(el=>el.dataset.value) : [];
   const invited=roomAccess.offer(id,state.character,currentRoute(),scheduleWindow().key,visibleIds);
-  const speech = dialogueFor(id,state.character,currentRoute(),topic);
+  const first=topic==='scene'&&beginGreeting(state,id);
+  if(first)save();
+  const greeting=first?greetingFor(state.character,id):null;
+  const dialogueKey=`${state.character}:${id}:${currentRoute()}:${topic}`;
+  const previous=lastHeadDialogue.get(dialogueKey);
+  let speech;
+  if(greeting)speech=greeting;
+  else if(topic==='scene')speech=clickedDialogue(id,dialogueFor(id,state.character,currentRoute(),topic),previous);
+  else speech=distinctDialogue(()=>dialogueFor(id,state.character,currentRoute(),topic),previous);
+  if(topic==='small-talk'){
+    const text=ambientLine(id,lastSmallTalk.get(id));lastSmallTalk.set(id,text);
+    speech={action:'',text};
+  }
+  lastHeadDialogue.set(dialogueKey,speech.text);
   const actionName = hall ? 'hall-topic' : 'topic';
-  const topics = [['friends','說說彼此的近況'],['lost','如果一起迷路了？'],['upset','今天有一點低落']].map(([key,label])=>button(actionName,label,`${id}:${key}`)).join('');
-  showDialog(c.name, `<img class="dialog-portrait" src="${asset(id)}" alt="${c.name}"><span class="eyebrow">${c.schoolHouse}</span><p class="stage-direction">${esc(speech.action)}</p><p class="spoken-line">「${esc(speech.text)}」</p>${invited ? '<p class="encounter-note">想再聊一會兒嗎？可以邀對方一起回房間坐坐，本次拜訪結束後需重新邀約。</p>' : ''}`, topics + (invited ? button('visit-room','去房間看看 →',id,'primary') : '') + (state.inventory.includes(id) ? button('gift','送出'+c.gift,id) : ''));
+  const topics = [['small-talk','聊點日常'],['friends','說說彼此的近況'],['lost','如果一起迷路了？'],['upset','今天有一點低落']].map(([key,label])=>button(actionName,label,`${id}:${key}`)).join('');
+  const speechBody=`<p class="stage-direction">${esc(speech.action)}</p><p class="spoken-line">「${esc(speech.text)}」</p>`;
+  if(roomAccess.host(state,currentRoute())===id){
+    showRoomConversation(id,'房間裡的悄悄話',speechBody,topics+(state.inventory.includes(id)?button('gift','送出'+c.gift,id):''));return;
+  }
+  const anchor=document.querySelector(`.scene-npc[data-value="${id}"],.rider[data-rider="${id}"]`);
+  if(anchor)headConversation=mountHeadConversation(anchor,c.short,speech.text,topics+(invited?button('visit-room','去房間看看 →',id,'primary'):'')+button('close-head','結束對話'),closeHeadConversation);
 }
 async function journal(id = state.character) {
   if(!character(id)){toast('請先選擇角色，再閱讀他的日記。');return;}
@@ -186,7 +228,7 @@ function roomItem(id, item) {
   if(item==='gift'&&!collected)actions+=button('collect',own?'收進行囊':'收下這份小物',id,'primary');
   if(item==='gift'&&collected)actions+='<p class="source-note">這份小物已經收藏過了。</p>';
   const title={diary:'桌上的日記',gift:c.gift,window:'窗邊的風景'}[item];
-  showDialog(title,own?`<p>這是${c.short}熟悉的房間。${item==='diary'?'日記停在上次寫下的那一頁。':item==='gift'?'小物好好地收在床頭。':'窗外傳來校園遠處的聲音。'}</p>`:`<img class="dialog-portrait" src="${asset(id)}" alt="${c.name}"><p class="stage-direction">${esc(speech.action)}</p><p class="spoken-line">「${esc(speech.text)}」</p>`,actions+button('close','繼續坐坐'));
+  showRoomConversation(id,title,own?`<p>這是${c.short}熟悉的房間。${item==='diary'?'日記停在上次寫下的那一頁。':item==='gift'?'小物好好地收在床頭。':'窗外傳來校園遠處的聲音。'}</p>`:`<p class="stage-direction">${esc(speech.action)}</p><p class="spoken-line">「${esc(speech.text)}」</p>`,actions);
 }
 function inventory() { showDialog('隨身行囊', `<h3>紀念小物</h3>${state.inventory.length ? `<ul class="inventory-list">${state.inventory.map(id=>`<li><span>${character(id).gift}</span>${button('gift','送給'+character(id).short,id)}</li>`).join('')}</ul>` : '<p class="muted">行囊裡還沒有小物，去朋友的宿舍看看吧。</p>'}<h3>貓咪夥伴 · ${state.pets.length}/4</h3><div class="pet-list">${state.pets.map(id=>`<img src="${asset(id+'-cat')}" alt="${character(id).short}的貓咪夥伴">`).join('')}</div><p class="muted">${state.pets.length ? '牠們會在這裡等著你。' : '森林裡或許能遇見新朋友。'}</p>`); }
 let petId;
@@ -242,6 +284,14 @@ document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]'); if(!target)return;
   const {action,value}=target.dataset;
   if(action==='close')dialog.close();
+  if(action==='reset-progress')showDialog('重置探索紀錄',`<p>確定要重新開始嗎？角色選擇、初次招呼、探索足跡、收藏物品、貓咪夥伴與魁地奇紀錄都會被清除。</p><p class="reset-warning">這個動作無法復原。</p>`,button('close','先不要')+button('confirm-reset','確定重置','','danger'));
+  if(action==='confirm-reset'){
+    resetProgress(state);
+    try{storage?.removeItem(STORAGE_KEY);}catch{}
+    roomAccess.dismiss();lastSmallTalk.clear();lastHeadDialogue.clear();chosen='abby';pitchGame=false;
+    dialog.close();go('select');toast('探索紀錄已重置。');
+  }
+  if(action==='close-head'){closeHeadConversation();refreshSchedule();}
   if(action==='start-game'&&currentRoute()==='pitch'){pitchGame=true;render();}
   if(action==='end-game'){pitchGame=false;render();}
   if(action==='open-map')go('map');
@@ -268,7 +318,7 @@ document.addEventListener('click',e=>{
   if(action==='read'){remember(state.read,value);save();render();toast('故事已收進冒險手記。');}
   if(action==='record'){const c=character(value);showDialog(c.name,`<p class="eyebrow">${c.english} · ${c.schoolHouse}</p><dl class="character-facts"><div><dt>身高</dt><dd>${c.height} cm</dd></div><div><dt>生日</dt><dd>${c.birthday}</dd></div><div><dt>擅長科目</dt><dd>${c.subject}</dd></div>${c.position?`<div><dt>球隊位置</dt><dd>${c.position}</dd></div>`:''}</dl><img class="record-img" src="${asset(value+'-record')}" alt="${c.name}的學生資訊紀錄表原稿；年級等未提供欄位保持空白">`,button('records','← 返回學生名冊'));}
   if(action==='collect'){if(currentRoute()!==`room/${value}`||!roomAccess.canEnter(state,value))return;const c=character(value);if(state.inventory.includes(value)||state.gifts.includes(value)){toast('這份紀念小物已經收藏過了。');return;}collectGift(state,value);save();render();toast(`收藏了${c.gift}。`);}
-  if(action==='gift'){if(giveGift(state,value)){save();const speech=dialogueFor(value,null,currentRoute(),'gift');showDialog('一份小小心意',`<p>${character(value).short}收下了${character(value).gift}。</p><p class="stage-direction">${speech.action}</p><p>「${speech.text}」</p>`,button('close','收下這段回憶','','primary'));}else toast('這份小物已送出，或還沒有找到。');}
+  if(action==='gift'){if(giveGift(state,value)){save();const speech=dialogueFor(value,null,currentRoute(),'gift');(roomAccess.host(state,currentRoute())===value ? (title,body,actions)=>showRoomConversation(value,title,body,actions) : showDialog)('一份小小心意',`<p>${character(value).short}收下了${character(value).gift}。</p><p class="stage-direction">${speech.action}</p><p>「${speech.text}」</p>`,button('close','收下這段回憶','','primary'));}else toast('這份小物已送出，或還沒有找到。');}
   if(action==='find-pet')findPet();
   if(action==='catch-pet'){if(value!==petId)return;remember(state.pets,value);save();render();toast('小貓願意跟著你了！已解鎖貓咪變身。');}
   if(action==='outfit'){if(value==='cat'&&!state.pets.length){toast('先去禁忌森林和一隻小貓成為朋友吧。');return;}state.outfit=value;save();wardrobeDialog();toast('新造型已換上。');}
@@ -283,13 +333,13 @@ dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoun
 window.addEventListener('hashchange',render);
 function refreshSchedule() {
   document.querySelector('.immersive')?.classList.toggle('night',period()==='night');
-  if(scheduleWindow().key!==renderedScheduleKey&&!dialog.open&&!pitchGame) {
+  if(scheduleWindow().key!==renderedScheduleKey&&!dialog.open&&!headConversation&&!pitchGame) {
     if(!['select','map','hall'].includes(currentRoute()))render();
   }
 }
 setInterval(refreshSchedule,15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSchedule();});
-dialog.addEventListener('close',()=>{roomAccess.dismiss();queueMicrotask(refreshSchedule);});
+dialog.addEventListener('close',()=>{if(dialog.open)return;dialog.classList.remove('room-conversation');document.querySelector('.immersive')?.classList.remove('room-speaking');roomAccess.dismiss();queueMicrotask(refreshSchedule);});
 render();
 registerAgentTools({
   readProgress: () => ({ character: state.character, visited: [...state.visited], met: [...state.met], pets: [...state.pets], read: [...state.read], catches: state.catches }),

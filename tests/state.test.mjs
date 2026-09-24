@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadState, canVisitRoom, collectGift, giveGift, remember } from '../js/state.js';
+import { loadState, canVisitRoom, collectGift, giveGift, remember, resetProgress } from '../js/state.js';
 const from = value => loadState({ getItem: () => JSON.stringify(value) });
 
 test('new visitor and unavailable/corrupt storage can start safely', () => {
@@ -35,4 +35,10 @@ test('progress remains stable across save/reload and character switching', () =>
   state.character='zephyr';const restored=from(state);
   assert.equal(restored.character,'zephyr');assert.deepEqual(restored.read,['letter']);
   assert.deepEqual(restored.pets,['gaile']);assert.equal(restored.diary,state.diary);assert.equal(restored.catches,2);
+});
+test('reset returns every saved field to a fresh visitor state',()=>{
+  const state=from({version:1,character:'thea',met:['abby'],greeted:['thea:abby'],visited:['library'],inventory:['abby'],pets:['gaile'],read:['letter'],gifts:['zephyr'],outfit:'cat',catches:5,diary:'秘密'});
+  const same=resetProgress(state);
+  assert.equal(same,state);
+  assert.deepEqual(state,loadState(null));
 });

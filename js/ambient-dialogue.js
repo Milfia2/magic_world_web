@@ -9,34 +9,21 @@ export function ambientLine(id, previous = '', random = Math.random) {
   const choices=(AMBIENT_LINES[id]||[]).filter(text=>text!==previous);
   return choices[Math.min(choices.length-1,Math.floor(random()*choices.length))] || '';
 }
-
-// One speech bubble at a time. Detached on scene changes; no layout movement.
-export function mountAmbientSpeech(canvas) {
-  const npcs=[...canvas.querySelectorAll('.standing-npc:not(.room-host)')];
-  if(!npcs.length)return ()=>{};
-  const layer=document.createElement('div');layer.className='ambient-layer';canvas.append(layer);
-  const bubble=document.createElement('div');bubble.className='ambient-bubble';bubble.hidden=true;layer.append(bubble);
-  const previous=new Map();let current=null, hideTimer, nextTimer, frame;
-  const schedulePosition=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(position);};
-  function position() {
-    if(!current||bubble.hidden)return;
-    const base=canvas.getBoundingClientRect(), head=current.querySelector('img').getBoundingClientRect();
-    const width=bubble.offsetWidth, height=bubble.offsetHeight;
-    const x=Math.max(8,Math.min(canvas.clientWidth-width-8,head.left-base.left+head.width/2-width/2));
-    bubble.style.left=`${x}px`;bubble.style.top=`${Math.max(8,head.top-base.top-height-10)}px`;
-    bubble.style.setProperty('--tail-x',`${Math.max(14,Math.min(width-14,head.left-base.left+head.width/2-x))}px`);
-  }
-  function show() {
-    if(!document.hidden&&!document.querySelector('dialog[open]')) {
-      current=npcs[Math.floor(Math.random()*npcs.length)];
-      const id=current.dataset.value, text=ambientLine(id,previous.get(id));previous.set(id,text);
-      bubble.textContent=text;bubble.hidden=false;schedulePosition();
-      hideTimer=setTimeout(()=>{bubble.hidden=true;},6500);
-    }
-    nextTimer=setTimeout(show,11000+Math.random()*5000);
-  }
-  const observer=new ResizeObserver(schedulePosition);observer.observe(canvas);
-  const images=npcs.map(n=>n.querySelector('img'));images.forEach(img=>{observer.observe(img);img.addEventListener('load',schedulePosition);});
-  show();
-  return ()=>{clearTimeout(hideTimer);clearTimeout(nextTimer);cancelAnimationFrame(frame);observer.disconnect();images.forEach(img=>img.removeEventListener('load',schedulePosition));layer.remove();};
+export function distinctDialogue(create, previous, attempts = 8) {
+  let result=create();
+  for(let i=1;i<attempts&&result?.text===previous;i++)result=create();
+  return result;
 }
+export function clickedDialogue(id, primary, previous = '', random = Math.random) {
+  const byText=new Map();
+  if(primary?.text)byText.set(primary.text,primary);
+  for(const text of AMBIENT_LINES[id]||[])if(text&&!byText.has(text))byText.set(text,{action:'',text});
+  const all=[...byText.values()];
+  const alternatives=all.filter(line=>line.text!==previous);
+  const choices=alternatives.length?alternatives:all;
+  const index=Math.min(choices.length-1,Math.floor(random()*choices.length));
+  return choices[index]||primary||{action:'',text:''};
+}
+
+// Lines are now requested explicitly by the conversation's "聊點日常" button.
+// No timers or automatic speech on entering a scene.

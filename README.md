@@ -40,12 +40,12 @@ node scripts/serve.mjs dist
 | --- | --- |
 | 角色選擇 | 四位角色、學院資料、可切換帶入角色 |
 | 校園地圖／中庭 | 總地圖只有地點；中庭是一般互動場景 |
-| 角色相遇 | 每三小時按角色偏好換地點，每人只有一個所在地；立繪頭頂隨機台詞，不出現玩家自身 |
+| 角色相遇 | 點擊後在對方頭頂顯示泡泡；點旁邊收起、再點角色換一句；操縱角色不發言 |
 | Q 版大廳 | 四角色聊天與位置重排；與探索進度分開 |
 | 圖書館 | 三篇示範短篇、已讀收藏 |
 | 教室／老師辦公室 | 可展開的世界設定、四位學生原始表格 |
 | 天文臺 | 臺北／倫敦／愛丁堡即時天氣、三日高低溫、載入與重試狀態 |
-| 宿舍 | 自己房間直接進入；找到朋友後選「去房間看看」同行，顯示放大立繪；離開即取消權限；日記／小物／窗戶觸發主人反應 |
+| 宿舍 | 自己房間直接進入；找到朋友後同行拜訪；點人物／物品顯示半身立繪與底部半透明對話框；離開即取消權限 |
 | 角色日記 | 四份可替換的 UTF-8 TXT 草稿；讀取操縱角色的日記，或拜訪時由房間主人分享 |
 | 球場 | 預設一般場景、可遇見有行程的角色；按鈕開始遊戲後四位騎行角色一起飛，支援上下左右與遠近縮放、金探子捕捉 |
 | 森林 | 尋找並收藏四隻貓咪，解鎖變身 |
@@ -63,7 +63,9 @@ js/character-spawns.js       立繪候選位置、尺寸、角色地點偏好（
 js/schedule.js               三小時行程與場景居民
 js/scene-layout.js           物品座標、背景投影、Q 版大廳散步
 js/dialogue.js               依 Character Bible 編寫的情境與關係對話
-js/ambient-dialogue.js       頭頂隨機台詞與泡泡定位
+js/ambient-dialogue.js       點「聊點日常」使用的台詞池，無自動計時器
+js/greetings.js              12 組依操縱角色區分的初次問候
+js/head-conversation.js      點擊式頭頂泡泡，對話與拜訪選項位於場景下方
 js/room-access.js            不儲存的單次同行拜訪權限
 js/room-content.js           房間放大立繪、物品反應、日記讀取
 content/diaries/*.txt        四位角色日記，可直接替換文字
@@ -81,6 +83,7 @@ tests/state.test.mjs        存檔、解鎖與贈禮規則測試
 tests/scenes.test.mjs       場景投影、Q 版位置、飛行與角色對話測試
 tests/schedule.test.mjs     行程時段、偏好、房間隱私、玩家排除測試
 tests/rooms.test.mjs        單次邀約、失效規則、TXT 日記與頭頂台詞測試
+tests/greetings.test.mjs    配對招呼、儲存、切換角色與手動對話測試
 docs/scene-tuning.md        角色與物品座標調整說明
 .github/workflows/pages.yml GitHub Pages 建置部署
 ```

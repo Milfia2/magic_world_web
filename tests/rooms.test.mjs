@@ -43,7 +43,7 @@ test('all four TXT diaries are packaged text and every room object has its owner
   await assert.rejects(readDiary('abby',async()=>({ok:true,text:async()=>''})));
   assert.equal(await readDiary('abby',async()=>({ok:true,text:async()=>'\uFEFF<script>plain text</script>\n'})),'<script>plain text</script>');
 });
-test('head bubbles use the supplied character voice and avoid immediately repeating lines',()=>{
+test('clicked small talk uses the supplied character voice without immediate repetition',()=>{
   for(const [id,lines] of Object.entries(AMBIENT_LINES)){
     let prior='';for(let i=0;i<15;i++){const line=ambientLine(id,prior,()=>i/15);assert.ok(lines.includes(line));assert.notEqual(line,prior);prior=line;}
   }

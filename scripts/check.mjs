@@ -4,6 +4,8 @@ import { resolve } from 'node:path';
 import { characters, places, asset } from '../js/data.js';
 import { DIARY_PATHS } from '../js/room-content.js';
 const root = resolve(import.meta.dirname, '..');
+execFileSync(process.execPath, ['--check', resolve(root, 'js/greetings.js')], { stdio: 'inherit' });
+execFileSync(process.execPath, ['--check', resolve(root, 'js/head-conversation.js')], { stdio: 'inherit' });
 for (const file of ['js/app.js', 'js/data.js', 'js/dialogue.js', 'js/state.js', 'js/scene-layout.js', 'js/character-spawns.js', 'js/schedule.js', 'js/flight.js', 'js/agent-tools.js', 'js/room-access.js', 'js/room-content.js', 'js/ambient-dialogue.js', 'scripts/build.mjs', 'scripts/serve.mjs']) {
   execFileSync(process.execPath, ['--check', resolve(root, file)], { stdio: 'inherit' });
 }
