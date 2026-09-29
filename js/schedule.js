@@ -20,7 +20,7 @@ export function scheduleWindow(date = new Date()) {
 function pickLocation(id, day, slot, previous) {
   const hour = slot * SCHEDULE_HOURS;
   const candidates = Object.entries(LOCATION_PREFERENCES[id]).filter(([scene]) =>
-    scene !== previous && (!scene.startsWith('room/') || scene === `room/${id}`));
+    scene !== previous && SPAWN_POINTS[scene]?.length && (!scene.startsWith('room/') || scene === `room/${id}`));
   const weighted = candidates.map(([scene, weight]) => [scene, weight * (scene.startsWith('room/') && (hour >= 21 || hour < 6) ? 3 : 1)]);
   let roll = randomFor(`${id}:${day}:${slot}:location`)() * weighted.reduce((sum,[,weight])=>sum+weight,0);
   for (const [scene,weight] of weighted) { roll -= weight; if (roll < 0) return scene; }
@@ -33,7 +33,7 @@ export function dailyLocations(id, date = new Date()) {
   return locations;
 }
 function fallbackScenes(id, primary, key) {
-  const result=[primary];
+  const result=SPAWN_POINTS[primary]?.length?[primary]:[];
   const pool=Object.entries(LOCATION_PREFERENCES[id]).filter(([scene])=>scene!==primary&&SPAWN_POINTS[scene]?.length);
   const random=randomFor(`${key}:${id}:overflow`);
   while(pool.length){
@@ -46,7 +46,7 @@ function fallbackScenes(id, primary, key) {
 function allocateScenes(roster,key){
   const used=new Map(),assigned=new Map();
   for(const person of shuffled(roster,randomFor(`${key}:assignment-order`))){
-    const scene=fallbackScenes(person.id,person.scene,key).find(candidate=>(used.get(candidate)||0)<SPAWN_POINTS[candidate].length);
+    const scene=fallbackScenes(person.id,person.scene,key).find(candidate=>(used.get(candidate)||0)<(SPAWN_POINTS[candidate]?.length||0));
     if(!scene)throw new Error(`No available scene for ${person.id}`);
     used.set(scene,(used.get(scene)||0)+1);assigned.set(person.id,scene);
   }

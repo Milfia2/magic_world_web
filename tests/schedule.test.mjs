@@ -35,6 +35,7 @@ test('each same-day period changes location, and character preferences affect fr
     const route=dailyLocations(id,new Date(2026,8,day));
     for(let i=0;i<route.length;i++){
       if(i)assert.notEqual(route[i],route[i-1]);
+      assert.ok(SPAWN_POINTS[route[i]]?.length);
       count[id][route[i]]=(count[id][route[i]]||0)+1;
     }
   }
