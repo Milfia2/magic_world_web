@@ -77,7 +77,7 @@ export const SPAWN_POINTS = {
 export const CHARACTER_SCALE = { abby: .88, thea: 1, gaile: 1.04, zephyr: 1.09 };
 
 // 權重越高越常出現，但每個時段每人仍只在一個地方。
-// 私人房間只能列出角色自己的房間。每三小時抽取一次行程。
+// 私人房間只能列出角色自己的房間。行程間隔由 SCHEDULE_HOURS 控制。
 export const LOCATION_PREFERENCES = {
   abby: { classroom: 7, atrium: 5, pitch: 5, library: 2, office: 2, village: 2, dorms: 1, 'room/abby': 2 },
   thea: { forest: 8, atrium: 6, village: 3, observatory: 2, dorms: 2, library: 1, classroom: 1, pitch: 1, 'room/thea': 2 },

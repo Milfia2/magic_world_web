@@ -1,6 +1,7 @@
-export const APP_VERSION = '0.4.4';
+export const APP_VERSION = '0.4.5';
 
 export const VERSION_HISTORY = [
+  {version:'0.4.5',date:'2026-09-29',title:'場景容量排程',changes:['排程檢查改為遵循 SCHEDULE_HOURS 設定，不再寫死三小時','角色數量超過場景候選位置時，自動依個人偏好移往其他尚有空位的地點','相同時段的改派結果固定，並保證每位角色都有有效且不重複的位置']},
   {version:'0.4.4',date:'2026-09-29',title:'最前線記者專欄',changes:['新增 report2〈Bubble gum〉館藏文章','report 與 report2 合併為同一作者的專欄 1、專欄 2','文章閱讀頁可返回專欄目錄']},
   {version:'0.4.3',date:'2026-09-29',title:'日記閱讀權限',changes:['操縱角色閱讀自己的 _self 私人日記','受邀拜訪其他角色房間時僅能閱讀無後綴的分享版本','介面會清楚標示私人日記或房間主人分享的頁面']},
   {version:'0.4.2',date:'2026-09-29',title:'圖書館正式館藏',changes:['圖書館三篇示範短篇更換為 content/library 提供的三篇文章','閱讀器直接載入 UTF-8 TXT 並保留原始文字、換行與空白','建置檢查會確認三篇文章皆可部署']},

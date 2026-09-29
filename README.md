@@ -1,6 +1,6 @@
 # 魔法日常 · Magic World
 
-依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.4**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
+依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.5**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
 
 Q 版大廳採用 `source/Q_Lobby.png`；自主漫遊限制在地板，拖曳可到整個畫面，放開後會落回地板。`js/hall-pets.js` 的 `hallFloorY` 設定地板線（原圖高度 81%）。森林有 5 種寵物，依序使用 `_wild`、無後綴和 `_happy` 圖作為野生、房間與短暫互動狀態，收藏按角色分開保存。森林顯示大小與透明度可在 `scene.css` 的 `.forest-pet` 調整；出現範圍在 `js/pets.js` 的 `hiddenPetPoint`。
 
@@ -62,7 +62,7 @@ styles.css                  色彩、排版與響應式樣式
 scene.css                   場景、立繪、物品與飛行介面
 js/data.js                  角色、地點、故事、設定與素材命名
 js/character-spawns.js       立繪候選位置、尺寸、角色地點偏好（美術調整入口）
-js/schedule.js               三小時行程與場景居民
+js/schedule.js               可設定時段的行程、場景容量與居民分配
 js/scene-layout.js           物品座標、背景投影、Q 版大廳散步
 js/dialogue.js               依 Character Bible 編寫的情境與關係對話
 js/ambient-dialogue.js       點「聊點日常」使用的台詞池，無自動計時器
@@ -102,7 +102,7 @@ docs/scene-tuning.md        角色與物品座標調整說明
 
 調整立繪的大小與位置請編輯 `js/character-spawns.js`：`x/y` 是原圖百分比的腳底座標，`height` 是高度；`CHARACTER_SCALE` 可個別調整角色大小，`LOCATION_PREFERENCES` 控制地點偏好。物品位置在 `js/scene-layout.js`。完整說明見 [場景調整指南](docs/scene-tuning.md)。
 
-行程依裝置當地日期與三小時時段固定抽取，每人只在一處；離開再進入不會重抽。00、03、06、09、12、15、18、21 時更新，同日相鄰時段不重複地點。夜間較容易回自己房間。對話與遊戲不會被時段更新中斷，結束後才更新一般場景。
+行程依裝置當地日期與 `SCHEDULE_HOURS` 固定抽取，目前每小時更新，每人只在一處；離開再進入不會重抽。同日相鄰時段不重複偏好地點，夜間較容易回自己房間。若同地點的人數超過候選位置容量，溢出的角色會依自身偏好移往其他尚有空位的地點。對話與遊戲不會被時段更新中斷，結束後才更新一般場景。
 
 `localStorage` 的 `magic-world:v1` 儲存探索與收藏；切換角色保留同一份進度。不跨裝置同步，清除網站資料會失去紀錄；儲存不可用時仍可在當前頁面遊玩。資料載入會過濾未知 ID 與錯誤格式。舊版玩家筆記保留在存檔、不再編輯或顯示；新版角色日記從 `content/diaries/` 載入 TXT，使用純文字安全呈現。
 

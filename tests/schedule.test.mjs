@@ -1,27 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { scheduleWindow, dailyLocations, scheduledRoster, residentsForScene } from '../js/schedule.js';
-import { SPAWN_POINTS, LOCATION_PREFERENCES } from '../js/character-spawns.js';
+import { SPAWN_POINTS, LOCATION_PREFERENCES, SCHEDULE_HOURS } from '../js/character-spawns.js';
 
 const ids=Object.keys(LOCATION_PREFERENCES);
-test('a local three-hour window stays stable across reloads and ends at the next boundary',()=>{
-  const early=new Date(2026,8,23,9,0), late=new Date(2026,8,23,11,59,59);
+test('the configured local schedule window stays stable and ends at the next boundary',()=>{
+  const start=Math.floor(9/SCHEDULE_HOURS)*SCHEDULE_HOURS;
+  const early=new Date(2026,8,23,start,0), late=new Date(2026,8,23,start+SCHEDULE_HOURS,0,0,-1);
+  const boundary=new Date(2026,8,23,start+SCHEDULE_HOURS);
   assert.deepEqual(scheduledRoster(early),scheduledRoster(late));
-  assert.equal(scheduleWindow(late).next.getTime(),new Date(2026,8,23,12).getTime());
+  assert.equal(scheduleWindow(late).next.getTime(),boundary.getTime());
   assert.equal(scheduleWindow(new Date(2026,11,31,23)).next.getTime(),new Date(2027,0,1).getTime());
-  assert.notEqual(scheduleWindow(late).key,scheduleWindow(new Date(2026,8,23,12)).key);
+  assert.notEqual(scheduleWindow(late).key,scheduleWindow(boundary).key);
 });
 test('each character occupies exactly one valid scene and a distinct candidate point',()=>{
-  for(let day=1;day<=60;day++)for(let hour=0;hour<24;hour+=3){
-    const roster=scheduledRoster(new Date(2026,8,day,hour));
+  let rerouted=0;
+  for(let day=1;day<=60;day++)for(let hour=0;hour<24;hour+=SCHEDULE_HOURS){
+    const date=new Date(2026,8,day,hour);
+    const roster=scheduledRoster(date);
     assert.deepEqual(roster.map(p=>p.id),ids);
     assert.equal(new Set(roster.map(p=>`${p.scene}:${p.point.name}`)).size,4);
     for(const p of roster){
+      if(p.scene!==dailyLocations(p.id,date)[scheduleWindow(date).slot])rerouted++;
       assert.ok(LOCATION_PREFERENCES[p.id][p.scene]);
       assert.ok(SPAWN_POINTS[p.scene].includes(p.point));
       if(p.scene.startsWith('room/'))assert.equal(p.scene,`room/${p.id}`);
     }
   }
+  assert.ok(rerouted>0);
 });
 test('each same-day period changes location, and character preferences affect frequency',()=>{
   const count=Object.fromEntries(ids.map(id=>[id,{}]));
@@ -38,7 +44,7 @@ test('each same-day period changes location, and character preferences affect fr
   assert.ok(count.zephyr.pitch>count.zephyr.library);
 });
 test('the selected player never appears in ordinary scenes, map or private room',()=>{
-  for(const selected of ids)for(let hour=0;hour<24;hour+=3){
+  for(const selected of ids)for(let hour=0;hour<24;hour+=SCHEDULE_HOURS){
     const date=new Date(2026,8,23,hour);
     const all=Object.keys(SPAWN_POINTS).flatMap(scene=>residentsForScene(scene,selected,date));
     assert.equal(all.length,3);
@@ -56,7 +62,7 @@ test('changing the player does not relocate the remaining characters',()=>{
 });
 test('the ordinary pitch can host scheduled residents while most scenes remain empty',()=>{
   let pitchEncounters=0;
-  for(let day=1;day<=30;day++)for(let hour=0;hour<24;hour+=3){
+  for(let day=1;day<=30;day++)for(let hour=0;hour<24;hour+=SCHEDULE_HOURS){
     const date=new Date(2026,8,day,hour);
     pitchEncounters+=residentsForScene('pitch','abby',date).length;
     const populated=Object.keys(SPAWN_POINTS).filter(scene=>residentsForScene(scene,'abby',date).length);

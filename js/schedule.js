@@ -32,9 +32,30 @@ export function dailyLocations(id, date = new Date()) {
   for (let slot=0;slot<24/SCHEDULE_HOURS;slot++) locations.push(pickLocation(id,day,slot,locations.at(-1)));
   return locations;
 }
+function fallbackScenes(id, primary, key) {
+  const result=[primary];
+  const pool=Object.entries(LOCATION_PREFERENCES[id]).filter(([scene])=>scene!==primary&&SPAWN_POINTS[scene]?.length);
+  const random=randomFor(`${key}:${id}:overflow`);
+  while(pool.length){
+    let roll=random()*pool.reduce((sum,[,weight])=>sum+weight,0),index=pool.length-1;
+    for(let i=0;i<pool.length;i++){roll-=pool[i][1];if(roll<0){index=i;break;}}
+    result.push(pool.splice(index,1)[0][0]);
+  }
+  return result;
+}
+function allocateScenes(roster,key){
+  const used=new Map(),assigned=new Map();
+  for(const person of shuffled(roster,randomFor(`${key}:assignment-order`))){
+    const scene=fallbackScenes(person.id,person.scene,key).find(candidate=>(used.get(candidate)||0)<SPAWN_POINTS[candidate].length);
+    if(!scene)throw new Error(`No available scene for ${person.id}`);
+    used.set(scene,(used.get(scene)||0)+1);assigned.set(person.id,scene);
+  }
+  return roster.map(person=>({...person,scene:assigned.get(person.id)}));
+}
 export function scheduledRoster(date = new Date()) {
   const {slot,key}=scheduleWindow(date);
-  const roster=Object.keys(LOCATION_PREFERENCES).map(id=>({id,scene:dailyLocations(id,date)[slot]}));
+  const preferred=Object.keys(LOCATION_PREFERENCES).map(id=>({id,scene:dailyLocations(id,date)[slot]}));
+  const roster=allocateScenes(preferred,key);
   const occupied=new Map();
   return roster.map(person=>{
     if (!occupied.has(person.scene)) occupied.set(person.scene,shuffled(SPAWN_POINTS[person.scene],randomFor(`${key}:${person.scene}:spots`)));
