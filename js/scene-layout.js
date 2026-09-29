@@ -9,7 +9,7 @@ export const sceneObjects = {
   ],
   classroom: [
     { label: '閱讀黑板上的世界設定', action: 'lore', x: 46, y: 31, w: 40, h: 25 },
-    { label: '老師留下的名冊 · 前往辦公室', action: 'open-office', x: 24, y: 88, w: 21, h: 12 },
+    { label: '老師留下的名冊 · 前往辦公室', action: 'open-office', x: 40, y: 50, w: 15, h: 9 },
   ],
   office: [{ label: '桌上的學生名冊', action: 'records', x: 53, y: 65, w: 20, h: 8, image: 'record-paper', style: 'laid-record' }],
   observatory: [

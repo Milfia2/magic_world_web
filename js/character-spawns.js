@@ -8,10 +8,8 @@ export const SPAWN_POINTS = {
     { name: '噴泉左前方', x: 43, y: 89, height: 40 },
   ],
   classroom: [
-    { name: '左側課桌邊', x: 16, y: 75, height: 32 },
-    { name: '講臺左前方', x: 40, y: 82, height: 35 },
-    { name: '中央走道', x: 66, y: 90, height: 42 },
-    { name: '靠窗走道', x: 86, y: 77, height: 31 },
+    { name: '左側課桌邊', x: 73, y: 75, height: 40 },
+    { name: '講臺左前方', x: 24, y: 130, height: 80 },
   ],
   library: [
     { name: '後方書架旁', x: 65, y: 78, height: 27 },
