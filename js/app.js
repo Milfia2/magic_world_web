@@ -168,7 +168,9 @@ function versionDialog(){
 async function libraryStory(id){
   const story=stories.find(item=>item.id===id);
   if(!story)return;
-  showDialog(story.title,`<span class="eyebrow">${esc(story.label)} · 館藏文章</span><article class="reading reading-source" data-library-story="${esc(story.id)}" aria-live="polite">正在取書……</article>`,button('read','讀完了，收藏這篇文章',story.id,'primary'));
+  const meta=story.series?`${story.author} · 專欄 ${story.column}`:`${story.label} · 館藏文章`;
+  const back=story.series?button('story-series','← 回到專欄目錄',story.series):'';
+  showDialog(story.title,`<span class="eyebrow">${esc(meta)}</span><article class="reading reading-source" data-library-story="${esc(story.id)}" aria-live="polite">正在取書……</article>`,back+button('read','讀完了，收藏這篇文章',story.id,'primary'));
   const article=dialog.querySelector(`[data-library-story="${story.id}"]`);
   try{
     const text=await readLibraryStory(story.id);
@@ -176,6 +178,11 @@ async function libraryStory(id){
   }catch{
     if(article?.isConnected&&article.dataset.libraryStory===story.id)article.textContent='暫時無法讀取這篇文章，請稍後再試。';
   }
+}
+function storySeries(series){
+  const entries=stories.filter(story=>story.series===series).sort((a,b)=>a.column-b.column);
+  if(!entries.length)return;
+  showDialog(`${entries[0].author}專欄`,`<p>同一位作者的連載文章。</p><div class="story-list">${entries.map(story=>button('story',`<span><small>專欄 ${story.column}</small>${esc(story.title)}</span><i>閱讀 →</i>`,story.id)).join('')}</div>`);
 }
 function wardrobeDialog() {
   showDialog('活米村的奇妙衣櫥',`<img class="dialog-portrait" src="${outfitAsset()}" alt="目前造型"><p>今天想以哪一種模樣漫遊校園？</p><div class="swatches">${[['uniform','學院制服'],['chibi','Q 版化身'],['cat','貓咪變身']].map(([v,t])=>`<button data-action="outfit" data-value="${v}" aria-pressed="${state.outfit===v}">${t}</button>`).join('')}</div><p class="source-note">找到寵物夥伴，就能解鎖貓咪變身。</p>`);
@@ -365,6 +372,7 @@ document.addEventListener('click',e=>{
   if(action==='journal')journal();
   if(action==='inventory')inventory();
   if(action==='story')libraryStory(value);
+  if(action==='story-series')storySeries(value);
   if(action==='read'){remember(state.read,value);save();render();toast('文章已收進冒險手記。');}
   if(action==='record'){const c=character(value);showDialog(c.name,`<p class="eyebrow">${c.english} · ${c.schoolHouse}</p><dl class="character-facts"><div><dt>身高</dt><dd>${c.height} cm</dd></div><div><dt>生日</dt><dd>${c.birthday}</dd></div><div><dt>擅長科目</dt><dd>${c.subject}</dd></div>${c.position?`<div><dt>球隊位置</dt><dd>${c.position}</dd></div>`:''}</dl><img class="record-img" src="${asset(value+'-record')}" alt="${c.name}的學生資訊紀錄表原稿；年級等未提供欄位保持空白">`,button('records','← 返回學生名冊'));}
   if(action==='collect'){if(currentRoute()!==`room/${value}`||!roomAccess.canEnter(state,value))return;const c=character(value);if(state.inventory.includes(value)||state.gifts.includes(value)){toast('這份紀念小物已經收藏過了。');return;}collectGift(state,value);save();render();toast(`收藏了${c.gift}。`);}

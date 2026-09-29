@@ -3,7 +3,7 @@
 export const sceneObjects = {
   atrium: [{ label: '攤開校園地圖', action: 'open-map', x: 16, y: 70, w: 15, h: 12, image: 'map', style: 'laid-map' }],
   library: [
-    { label: '〈同心圓〉', action: 'story', value: 'report', x: 19, y: 76, w: 13, h: 8 },
+    { label: '預言家日報最前線記者專欄 · 專欄 1／2', action: 'story-series', value: '最前線記者專欄', x: 19, y: 76, w: 13, h: 8 },
     { label: '校園秘辛：一年級女同學 A 的獨白', action: 'story', value: 'secret', x: 34, y: 65, w: 10, h: 7 },
     { label: '校園秘辛：二年級學生 B 的目擊紀錄', action: 'story', value: 'secret2', x: 94, y: 82, w: 10, h: 15 },
   ],

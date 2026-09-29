@@ -1,6 +1,7 @@
-export const APP_VERSION = '0.4.3';
+export const APP_VERSION = '0.4.4';
 
 export const VERSION_HISTORY = [
+  {version:'0.4.4',date:'2026-09-29',title:'最前線記者專欄',changes:['新增 report2〈Bubble gum〉館藏文章','report 與 report2 合併為同一作者的專欄 1、專欄 2','文章閱讀頁可返回專欄目錄']},
   {version:'0.4.3',date:'2026-09-29',title:'日記閱讀權限',changes:['操縱角色閱讀自己的 _self 私人日記','受邀拜訪其他角色房間時僅能閱讀無後綴的分享版本','介面會清楚標示私人日記或房間主人分享的頁面']},
   {version:'0.4.2',date:'2026-09-29',title:'圖書館正式館藏',changes:['圖書館三篇示範短篇更換為 content/library 提供的三篇文章','閱讀器直接載入 UTF-8 TXT 並保留原始文字、換行與空白','建置檢查會確認三篇文章皆可部署']},
   {version:'0.4.1',date:'2026-09-29',title:'寵物狀態與大廳墜落',changes:['森林、房間與點擊互動分別使用 wild、正常與 happy 寵物圖','大廳角色可拖到牆面，放開後會受重力落回地板','舊版寵物收藏自動合併為五種物種']},

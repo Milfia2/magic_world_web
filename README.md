@@ -1,6 +1,6 @@
 # 魔法日常 · Magic World
 
-依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.3**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
+依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.4**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
 
 Q 版大廳採用 `source/Q_Lobby.png`；自主漫遊限制在地板，拖曳可到整個畫面，放開後會落回地板。`js/hall-pets.js` 的 `hallFloorY` 設定地板線（原圖高度 81%）。森林有 5 種寵物，依序使用 `_wild`、無後綴和 `_happy` 圖作為野生、房間與短暫互動狀態，收藏按角色分開保存。森林顯示大小與透明度可在 `scene.css` 的 `.forest-pet` 調整；出現範圍在 `js/pets.js` 的 `hiddenPetPoint`。
 
@@ -44,7 +44,7 @@ node scripts/serve.mjs dist
 | 校園地圖／中庭 | 總地圖只有地點；中庭是一般互動場景 |
 | 角色相遇 | 點擊後在對方頭頂顯示泡泡；點旁邊收起、再點角色換一句；操縱角色不發言 |
 | Q 版大廳 | 四角色聊天與位置重排；與探索進度分開 |
-| 圖書館 | 直接讀取 `content/library` 的三篇 TXT 館藏、已讀收藏 |
+| 圖書館 | 直接讀取 `content/library` 的四篇 TXT 館藏；兩篇 report 合併為同作者專欄 1／2，支援已讀收藏 |
 | 教室／老師辦公室 | 可展開的世界設定、四位學生原始表格 |
 | 天文臺 | 臺北／倫敦／愛丁堡即時天氣、三日高低溫、載入與重試狀態 |
 | 宿舍 | 自己房間直接進入；找到朋友後同行拜訪；點人物／物品顯示半身立繪與底部半透明對話框；離開即取消權限 |

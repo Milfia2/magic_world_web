@@ -16,7 +16,8 @@ export const places = [
   { id: 'village', name: '活米村', en: 'HOGSMEADE', desc: '閃亮亮換裝小鎮', icon: '♙', x: 17, y: 84 },
 ];
 export const stories = [
-  { id: 'report', title: '〈同心圓〉', label: '預言家日報', path: './content/library/report.txt' },
+  { id: 'report', title: '〈同心圓〉', label: '預言家日報', author: '預言家日報最前線記者', series: '最前線記者專欄', column: 1, path: './content/library/report.txt' },
+  { id: 'report2', title: '〈Bubble gum〉', label: '預言家日報', author: '預言家日報最前線記者', series: '最前線記者專欄', column: 2, path: './content/library/report2.txt' },
   { id: 'secret', title: '校園秘辛：一年級女同學 A 的獨白', label: '校園秘辛', path: './content/library/secret.txt' },
   { id: 'secret2', title: '校園秘辛：二年級學生 B 的目擊紀錄', label: '校園秘辛', path: './content/library/secret2.txt' },
 ];
