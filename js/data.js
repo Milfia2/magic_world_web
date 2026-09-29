@@ -9,11 +9,11 @@ export const places = [
   { id: 'atrium', name: '校園中庭', en: 'THE COURTYARD', desc: '開始今天的冒險。', icon: '✧', x: 49, y: 53 },
   { id: 'library', name: '圖書館', en: 'THE LIBRARY', desc: '校園小秘辛', icon: '▤', x: 20, y: 26 },
   { id: 'classroom', name: '教室', en: 'THE CLASSROOM', desc: '認識魔法世界', icon: '◇', x: 15, y: 51 },
-  { id: 'observatory', name: '天文臺', en: 'THE OBSERVATORY', desc: '抬頭看看，遠方的天空今天是什麼模樣？', icon: '☾', x: 50, y: 17 },
-  { id: 'dorms', name: '學院宿舍', en: 'THE DORMITORIES', desc: '燈火亮起的地方，有人等著你的故事。', icon: '⌂', x: 79, y: 27 },
+  { id: 'observatory', name: '天文臺', en: 'THE OBSERVATORY', desc: '抬頭看看遠方的天空', icon: '☾', x: 50, y: 17 },
+  { id: 'dorms', name: '學院宿舍', en: 'THE DORMITORIES', desc: '休息的地方', icon: '⌂', x: 79, y: 27 },
   { id: 'pitch', name: '魁地奇球場', en: 'THE QUIDDITCH PITCH', desc: '握緊掃帚，追上那一道金色的光。', icon: '⚑', x: 86, y: 53 },
   { id: 'forest', name: '禁忌森林', en: 'THE FORBIDDEN WOODS', desc: '樹林裡似乎有什麼東西在注視著你', icon: '♧', x: 81, y: 84 },
-  { id: 'village', name: '活米村', en: 'HOGSMEADE', desc: '為下一次相遇，換上一點不同的心情。', icon: '♙', x: 17, y: 84 },
+  { id: 'village', name: '活米村', en: 'HOGSMEADE', desc: '閃亮亮換裝小鎮', icon: '♙', x: 17, y: 84 },
 ];
 export const stories = [
   { id: 'letter', title: '一封遲到的入學信', label: '序章', text: ['信封滑進門縫的時候，窗外正下著細雨。你撿起它，在厚實的紙面上摸到一枚微微凸起的封印。', '「有些路，要等你準備好才會出現。」信紙只寫了這一句。再抬起頭，窗外已不再是熟悉的街道，而是一座亮著燈的城堡。', '你把信收進口袋，推開門。中庭的鐘聲，剛好敲響。'] },

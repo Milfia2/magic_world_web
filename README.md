@@ -1,6 +1,6 @@
 # 魔法日常 · Magic World
 
-依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。
+依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.3.0**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
 
 設計參考：[功能流程](https://www.figma.com/board/DaKM21HbMBiWT0WieZG0aI/FigJam-basics?node-id=0-1)、[互動原型](https://www.figma.com/proto/w51pm5Coy8ozbWGLjzil70/Untitled?node-id=13-690)。以原型的角色選擇、插畫場景與角色對話為基礎，新增一致的導覽與手機版排版。
 

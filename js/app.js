@@ -11,6 +11,7 @@ import { readDiary, ROOM_HOST_POINT, ROOM_REACTIONS } from './room-content.js';
 import { ambientLine, clickedDialogue, distinctDialogue } from './ambient-dialogue.js';
 import { greetingFor } from './greetings.js';
 import { mountHeadConversation } from './head-conversation.js';
+import { APP_VERSION, VERSION_HISTORY } from './version.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#dialog');
@@ -42,7 +43,7 @@ function go(route) { if (currentRoute() === route) render(); else location.hash 
 function period() { const h = new Date().getHours(); return h >= 6 && h < 18 ? 'day' : 'night'; }
 function header(route) {
   const c = character(state.character);
-  return `<header class="topbar"><a class="brand" href="#/${c ? 'atrium' : 'select'}"><span class="ornament" aria-hidden="true">✧</span><span class="brand-title">魔法日常<small>MAGIC WORLD</small></span></a><nav class="top-nav" aria-label="主要導覽"><a class="${route === 'map' ? 'active' : ''}" href="#/map">校園地圖</a><a class="${route === 'hall' ? 'active' : ''}" href="#/hall">Q 版大廳</a>${button('journal', '角色日記', '', 'text-button')}${button('reset-progress', '重置紀錄', '', 'text-button reset-button')}</nav><div class="profile">${c ? `<img src="${asset(c.id + '-chibi')}" alt=""><a href="#/select">${c.short}<small>${c.house} · 切換角色</small></a>` : '<span class="clock">一段日常，一點魔法</span>'}</div></header>`;
+  return `<header class="topbar"><a class="brand" href="#/${c ? 'atrium' : 'select'}"><span class="ornament" aria-hidden="true">✧</span><span class="brand-title">魔法日常<small>MAGIC WORLD</small></span></a><nav class="top-nav" aria-label="主要導覽"><a class="${route === 'map' ? 'active' : ''}" href="#/map">校園地圖</a><a class="${route === 'hall' ? 'active' : ''}" href="#/hall">Q 版大廳</a>${button('journal', '角色日記', '', 'text-button')}${button('version-history', `v${APP_VERSION}`, '', 'text-button version-button')}${button('reset-progress', '重置紀錄', '', 'text-button reset-button')}</nav><div class="profile">${c ? `<img src="${asset(c.id + '-chibi')}" alt=""><a href="#/select">${c.short}<small>${c.house} · 切換角色</small></a>` : '<span class="clock">一段日常，一點魔法</span>'}</div></header>`;
 }
 function selection() {
   return `<main id="main" class="selection"><div class="selection-head"><span class="eyebrow">YOUR STORY BEGINS HERE</span><h1>角色選擇</h1><p>選擇帶入角色</p></div><div class="character-grid" role="group" aria-label="選擇帶入角色">${characters.map(c => `<button class="character-card ${c.id === chosen ? 'selected' : ''}" style="--house:${c.color}" data-action="choose" data-value="${c.id}" aria-pressed="${c.id === chosen}"><span class="house-label">${c.house} · ${c.virtue}</span><div class="portrait"><img src="${asset(c.id)}" alt="${c.name}" fetchpriority="high"></div><h2>${c.name}</h2><span class="english">${c.english}</span><p class="quote">${c.intro}</p></button>`).join('')}</div><div class="selection-footer">${button('enter', `以${character(chosen).short}的身分，進入學院　→`, '', 'primary')}<p>探索紀錄會保存在這個瀏覽器，隨時可以回來。</p><div class="secondary-links">${link('map', '先看看校園地圖', '')}${link('hall', '前往 Q 版大廳 ↗', '')}${button('about', '關於這個世界', '', 'text-button')}</div></div></main>`;
@@ -146,6 +147,9 @@ function arrangeScene() {
 }
 
 function recordsDialog() { showDialog('桌上的學生名冊', `<p>翻開名冊，選擇想認識的同學。</p><div class="story-list">${characters.map(c=>button('record',`${c.name} <i>查看 →</i>`,c.id)).join('')}</div>`); }
+function versionDialog(){
+  showDialog(`版本紀錄 · v${APP_VERSION}`,`<div class="version-history">${VERSION_HISTORY.map((release,index)=>`<section class="version-entry ${index===0?'current':''}"><header><strong>v${esc(release.version)}</strong><time datetime="${esc(release.date)}">${esc(release.date)}</time></header><h3>${esc(release.title)}</h3><ul>${release.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul></section>`).join('')}</div>`,button('close','關閉'));
+}
 function wardrobeDialog() {
   showDialog('活米村的奇妙衣櫥',`<img class="dialog-portrait" src="${outfitAsset()}" alt="目前造型"><p>今天想以哪一種模樣漫遊校園？</p><div class="swatches">${[['uniform','學院制服'],['chibi','Q 版化身'],['cat','貓咪變身']].map(([v,t])=>`<button data-action="outfit" data-value="${v}" aria-pressed="${state.outfit===v}">${t}</button>`).join('')}</div><p class="source-note">找到貓咪夥伴，就能解鎖貓咪變身。</p>`);
 }
@@ -284,6 +288,7 @@ document.addEventListener('click',e=>{
   const target=e.target.closest('[data-action]'); if(!target)return;
   const {action,value}=target.dataset;
   if(action==='close')dialog.close();
+  if(action==='version-history')versionDialog();
   if(action==='reset-progress')showDialog('重置探索紀錄',`<p>確定要重新開始嗎？角色選擇、初次招呼、探索足跡、收藏物品、貓咪夥伴與魁地奇紀錄都會被清除。</p><p class="reset-warning">這個動作無法復原。</p>`,button('close','先不要')+button('confirm-reset','確定重置','','danger'));
   if(action==='confirm-reset'){
     resetProgress(state);
@@ -326,7 +331,7 @@ document.addEventListener('click',e=>{
   if(action==='weather')loadWeather();
   if(action==='shuffle'){scatterScene();toast('往四周看看，朋友們換了個地方。');}
   if(action==='hall-talk')talk(value,'scene',true);
-  if(action==='about')showDialog('歡迎來到魔法日常',`<p>四位熟識的朋友，四種不同的校園日常。選擇角色，看看大家今天在哪裡，讀一段故事，或一起飛一圈。</p><p class="source-note">互動初版 v0.2 · 角色資料依照提供的 Character Bible；互動台詞為依設定編寫的情境草稿。角色與場景使用專案提供的素材。</p>`);
+  if(action==='about')showDialog('歡迎來到魔法日常',`<p>四位熟識的朋友，四種不同的校園日常。選擇角色，看看大家今天在哪裡，讀一段故事，或一起飛一圈。</p><p class="source-note">目前版本 v${APP_VERSION} · 角色資料依照提供的 Character Bible；互動台詞為依設定編寫的情境草稿。角色與場景使用專案提供的素材。</p>`,button('version-history','查看版本紀錄'));
 });
 document.addEventListener('change',e=>{if(e.target.id==='city')loadWeather();});
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
