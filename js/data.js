@@ -23,7 +23,7 @@ export const stories = [
 export const lore = [
   ['四個學院', '獅院珍視勇氣，獾院相信善意，鷹院追尋知識，蛇院懷抱志向。不同的起點，都能通往同一場友誼。'],
   ['校園探索', '四人原本就是熟識的朋友，分屬不同學院。在場景裡找到朋友、打聲招呼，就能約好到他的宿舍作客。'],
-  ['相遇與收藏', '在宿舍找到的小物可以送給朋友。森林裡的小貓、圖書館讀過的故事，也會成為你的旅行紀錄。'],
+  ['相遇與收藏', '在宿舍找到的小物可以送給朋友。在森林找到的寵物會入住你的房間，和圖書館讀過的故事一起成為旅行紀錄。'],
 ];
-export const asset = (name) => `./assets/${name}.webp`;
+export const asset = (name) => name==='hall'?'./assets/Q_Lobby.png':`./assets/${name}.webp`;
 export const character = (id) => characters.find(c => c.id === id);

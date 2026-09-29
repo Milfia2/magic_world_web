@@ -2,11 +2,16 @@
 Run with Python + Pillow when source artwork changes; commit assets/ afterwards.
 """
 from pathlib import Path
+from shutil import copy2
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets"
 OUT.mkdir(exist_ok=True)
+copy2(ROOT / 'source' / 'Q_Lobby.png', OUT / 'Q_Lobby.png')
+(OUT / 'pets').mkdir(exist_ok=True)
+for pet in (ROOT / 'source' / 'pet').glob('*.png'):
+    copy2(pet, OUT / 'pets' / pet.name)
 FILES = {
     "atrium": "atrium.png", "library": "library.png", "classroom": "classroom.png",
     "office": "office.png", "observatory": "observatory.png", "dorms": "dormitory_outside.png",

@@ -1,8 +1,9 @@
 import { characters, places, stories } from './data.js';
+import { normalizePetIds } from './pets.js';
 export const STORAGE_KEY = 'magic-world:v1';
 const ids = characters.map(c => c.id);
 const greetingPairs = ids.flatMap(player=>ids.filter(id=>id!==player).map(id=>`${player}:${id}`));
-const fresh = () => ({ version: 1, character: null, met: [], greeted: [], visited: [], inventory: [], pets: [], read: [], gifts: [], outfit: 'uniform', catches: 0, diary: '' });
+const fresh = () => ({ version: 1, character: null, met: [], greeted: [], visited: [], inventory: [], pets: [], companions: Object.fromEntries(ids.map(id=>[id,[]])), read: [], gifts: [], outfit: 'uniform', catches: 0, diary: '' });
 const selectList = (value, allowed) => Array.isArray(value) ? [...new Set(value.filter(x => allowed.includes(x)))] : [];
 export function loadState(storage) {
   const defaults = fresh();
@@ -12,6 +13,7 @@ export function loadState(storage) {
     return { ...defaults, character: ids.includes(raw.character) ? raw.character : null,
       met: selectList(raw.met, ids), visited: selectList(raw.visited, places.map(p => p.id)),
       greeted: selectList(raw.greeted, greetingPairs),
+      companions: Object.fromEntries(ids.map(id=>[id,normalizePetIds(raw.companions?.[id])])),
       inventory: selectList(raw.inventory, ids), pets: selectList(raw.pets, ids),
       read: selectList(raw.read, stories.map(s => s.id)), gifts: selectList(raw.gifts, ids),
       outfit: ['uniform', 'chibi', 'cat'].includes(raw.outfit) ? raw.outfit : 'uniform',

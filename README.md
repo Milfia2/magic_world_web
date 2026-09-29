@@ -1,6 +1,8 @@
 # 魔法日常 · Magic World
 
-依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.3.0**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
+依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.1**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
+
+Q 版大廳採用 `source/Q_Lobby.png`；自主漫遊限制在地板，拖曳可到整個畫面，放開後會落回地板。`js/hall-pets.js` 的 `hallFloorY` 設定地板線（原圖高度 81%）。森林有 5 種寵物，依序使用 `_wild`、無後綴和 `_happy` 圖作為野生、房間與短暫互動狀態，收藏按角色分開保存。森林顯示大小與透明度可在 `scene.css` 的 `.forest-pet` 調整；出現範圍在 `js/pets.js` 的 `hiddenPetPoint`。
 
 設計參考：[功能流程](https://www.figma.com/board/DaKM21HbMBiWT0WieZG0aI/FigJam-basics?node-id=0-1)、[互動原型](https://www.figma.com/proto/w51pm5Coy8ozbWGLjzil70/Untitled?node-id=13-690)。以原型的角色選擇、插畫場景與角色對話為基礎，新增一致的導覽與手機版排版。
 
@@ -48,7 +50,7 @@ node scripts/serve.mjs dist
 | 宿舍 | 自己房間直接進入；找到朋友後同行拜訪；點人物／物品顯示半身立繪與底部半透明對話框；離開即取消權限 |
 | 角色日記 | 四份可替換的 UTF-8 TXT 草稿；讀取操縱角色的日記，或拜訪時由房間主人分享 |
 | 球場 | 預設一般場景、可遇見有行程的角色；按鈕開始遊戲後四位騎行角色一起飛，支援上下左右與遠近縮放、金探子捕捉 |
-| 森林 | 尋找並收藏四隻貓咪，解鎖變身 |
+| 森林 | 尋找 5 種半透明寵物，分角色收藏並自動入住捕捉者房間 |
 | 活米村 | 制服／Q 版／貓咪造型預覽，不改變一般場景立繪 |
 | 共用 | 依裝置時間明暗切換、RWD、鍵盤操作、降低動畫偏好、原生 dialog |
 

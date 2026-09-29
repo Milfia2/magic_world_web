@@ -1,7 +1,7 @@
 import { characters, character, places, stories, lore, asset } from './data.js';
 import { loadState, STORAGE_KEY, remember, collectGift, giveGift, beginGreeting, resetProgress } from './state.js';
 import { registerAgentTools } from './agent-tools.js';
-import { sceneObjects, roomObjects, projectObject, scatterCharacters } from './scene-layout.js';
+import { sceneObjects, roomObjects, projectObject, scatterCharacters, clamp } from './scene-layout.js';
 import { createFlightController } from './flight.js';
 import { dialogueFor } from './dialogue.js';
 import { residentsForScene, scheduleWindow } from './schedule.js';
@@ -12,6 +12,8 @@ import { ambientLine, clickedDialogue, distinctDialogue } from './ambient-dialog
 import { greetingFor } from './greetings.js';
 import { mountHeadConversation } from './head-conversation.js';
 import { APP_VERSION, VERSION_HISTORY } from './version.js';
+import { createHallPetController } from './hall-pets.js';
+import { PETS, petsFor, capturePet, hiddenPetPoint } from './pets.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#dialog');
@@ -68,7 +70,7 @@ function showRoomConversation(id, title, body, actions = '') {
   dialog.querySelector('.close').focus({preventScroll:true});
 }
 function mapView() {
-  return `<main id="main" class="map-layout"><div class="map-heading"><div><span class="eyebrow">THE MARAUDER'S NOTEBOOK</span><h1>把日常，走成一場冒險。</h1><p>點選地圖上的地點，看看今天會遇見誰。</p></div>${link(state.character ? 'atrium' : 'select', state.character ? '返回中庭' : '選擇角色')}</div><div class="map-grid"><div class="map-canvas"><img src="${asset('map')}" alt="魔法學院地圖，標示八個可探索地點">${places.map(p => `<a href="#/${p.id}" class="map-pin" style="--x:${p.x}%;--y:${p.y}%" aria-label="前往${p.name}">${state.visited.includes(p.id) ? '✦ ' : ''}${p.name}</a>`).join('')}</div><aside class="map-aside"><section class="panel"><span class="eyebrow">YOUR JOURNEY</span><h2>探索足跡</h2><div class="stats"><div class="stat"><strong>${state.visited.length}/8</strong><small>造訪地點</small></div><div class="stat"><strong>${state.met.length}/4</strong><small>交談朋友</small></div><div class="stat"><strong>${state.pets.length}/4</strong><small>貓咪夥伴</small></div></div><nav class="destination-list" aria-label="地點清單">${places.map(p => link(p.id, `<i>${p.icon}</i>${p.name}<span>↗</span>`, '')).join('')}</nav></section><section class="panel"><span class="eyebrow">A LITTLE REMINDER</span><p>想拜訪朋友的房間，請先在校園找到本人，交談後選「去房間看看」。離開後需重新邀約，不能直接闖入。</p></section></aside></div></main>`;
+  return `<main id="main" class="map-layout"><div class="map-heading"><div><span class="eyebrow">THE MARAUDER'S NOTEBOOK</span><h1>把日常，走成一場冒險。</h1><p>點選地圖上的地點，看看今天會遇見誰。</p></div>${link(state.character ? 'atrium' : 'select', state.character ? '返回中庭' : '選擇角色')}</div><div class="map-grid"><div class="map-canvas"><img src="${asset('map')}" alt="魔法學院地圖，標示八個可探索地點">${places.map(p => `<a href="#/${p.id}" class="map-pin" style="--x:${p.x}%;--y:${p.y}%" aria-label="前往${p.name}">${state.visited.includes(p.id) ? '✦ ' : ''}${p.name}</a>`).join('')}</div><aside class="map-aside"><section class="panel"><span class="eyebrow">YOUR JOURNEY</span><h2>探索足跡</h2><div class="stats"><div class="stat"><strong>${state.visited.length}/8</strong><small>造訪地點</small></div><div class="stat"><strong>${state.met.length}/4</strong><small>交談朋友</small></div><div class="stat"><strong>${petsFor(state).length}/${PETS.length}</strong><small>寵物夥伴</small></div></div><nav class="destination-list" aria-label="地點清單">${places.map(p => link(p.id, `<i>${p.icon}</i>${p.name}<span>↗</span>`, '')).join('')}</nav></section><section class="panel"><span class="eyebrow">A LITTLE REMINDER</span><p>想拜訪朋友的房間，請先在校園找到本人，交談後選「去房間看看」。離開後需重新邀約，不能直接闖入。</p></section></aside></div></main>`;
 }
 function hotspot(item) {
   return `<button class="scene-object ${item.style || ''}" data-action="${item.action}" data-value="${item.value || ''}" data-anchor data-x="${item.x}" data-y="${item.y}" data-w="${item.w}" data-h="${item.h}" style="left:${item.x}%;top:${item.y}%;width:${item.w}%;height:${item.h}%" aria-label="${item.label}" title="${item.label}">${item.image ? `<img src="${asset(item.image)}" alt="" draggable="false">` : ''}<span class="object-glint" aria-hidden="true">✧</span><span class="object-label">${item.label}</span></button>`;
@@ -77,7 +79,7 @@ function scene(id, title, en, desc, options = {}) {
   const isPitch = id === 'pitch' && pitchGame;
   const objects = options.objects || sceneObjects[id] || [];
   const riders = isPitch ? characters.map(c => `<button class="rider" data-rider="${c.id}" data-name="${c.short}" aria-label="操控${c.short}飛行" aria-pressed="${c.id === state.character}"><img src="${asset(c.id+'-riding')}" alt="${c.short}騎著掃帚" draggable="false"><span>${c.short}<small class="pilot-marker">操控中</small></span></button>`).join('') : '';
-  return `<main id="main" class="immersive ${period()}" data-scene="${id}"><div class="scene-heading"><div><span class="eyebrow">${en}</span><h1>${title}</h1><p>${desc}</p></div><div class="actions">${options.back ? link(options.back.route, options.back.label) : ''}${state.character ? link('room/'+state.character,'我的房間') : ''}${link('map','⌘ 校園地圖')}</div></div><section class="scene-canvas ${isPitch ? 'flight-field' : ''}" ${isPitch ? 'id="field" tabindex="0"' : ''} aria-label="${isPitch ? '飛行球場；方向鍵或 WASD 移動，Q 遠離，E 靠近' : title+'互動場景'}"><img class="scene-art" src="${asset(id)}" alt="${title}場景" draggable="false" fetchpriority="high"><div class="object-layer">${objects.map(hotspot).join('')}</div>${riders}${id === 'forest' ? '<div id="pet-stage" class="pet-stage"></div>' : ''}${!isPitch ? '<div class="npc-layer" aria-label="場景中的角色"></div>' : ''}</section>${isPitch ? flightControls() : `<div class="scene-tools"><p><span class="ornament">✧</span><span>${currentRoute()==='hall'?'朋友們在大廳休息。':id.endsWith('-room')?(roomAccess.host(state,currentRoute())?'本次同行拜訪中，離開後需重新邀約。':'這是你的房間，可以安心休息。'):`朋友各有行程，下次換地點：${scheduleWindow().next.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})}。`}</span></p><div class="actions">${id==='pitch'?button('start-game','開始魁地奇遊戲','','primary'):''}${currentRoute()==='hall'?button('shuffle','散散步'):''}${button('hints','顯示互動提示')}${id === 'forest' ? button('find-pet','尋找貓咪') : ''}${button('inventory','隨身行囊')}</div></div>`}</main>`;
+  return `<main id="main" class="immersive ${period()}" data-scene="${id}"><div class="scene-heading"><div><span class="eyebrow">${en}</span><h1>${title}</h1><p>${desc}</p></div><div class="actions">${options.back ? link(options.back.route, options.back.label) : ''}${state.character ? link('room/'+state.character,'我的房間') : ''}${link('map','⌘ 校園地圖')}</div></div><section class="scene-canvas ${isPitch ? 'flight-field' : ''}" ${isPitch ? 'id="field" tabindex="0"' : ''} aria-label="${isPitch ? '飛行球場；方向鍵或 WASD 移動，Q 遠離，E 靠近' : title+'互動場景'}"><img class="scene-art" src="${asset(id)}" alt="${title}場景" draggable="false" fetchpriority="high"><div class="object-layer">${objects.map(hotspot).join('')}</div>${riders}${id === 'forest' ? '<div id="pet-stage" class="pet-stage"></div>' : ''}${!isPitch ? '<div class="npc-layer" aria-label="場景中的角色"></div>' : ''}</section>${isPitch ? flightControls() : `<div class="scene-tools"><p><span class="ornament">✧</span><span>${currentRoute()==='hall'?'朋友們會自己四處走動；按住角色即可拖曳，輕點則能交談。':id.endsWith('-room')?(roomAccess.host(state,currentRoute())?'本次同行拜訪中，離開後需重新邀約。':'這是你的房間，可以安心休息。'):`朋友各有行程，下次換地點：${scheduleWindow().next.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit',hour12:false})}。`}</span></p><div class="actions">${id==='pitch'?button('start-game','開始魁地奇遊戲','','primary'):''}${currentRoute()==='hall'?button('shuffle','重新散開'):''}${button('hints','顯示互動提示')}${id === 'forest' ? button('find-pet','尋找寵物') : ''}${button('inventory','隨身行囊')}</div></div>`}</main>`;
 }
 function flightControls() {
   return `<div id="flight-controls" class="flight-controls"><div class="flight-topline"><div class="pilot-select" aria-label="選擇操控角色">${characters.map(c=>`<button data-pilot="${c.id}" aria-pressed="${state.character===c.id}"><img src="${asset(c.id+'-chibi')}" alt="">${c.short}</button>`).join('')}</div><div class="actions">${button('launch','放出金探子','','primary')}${button('end-game','結束遊戲')}<span>捕捉 <strong id="catch-count">${state.catches}</strong> 次</span></div></div><div class="flight-bottomline"><div><p class="flight-instruction">操控 <strong id="pilot-name"></strong> · 拖曳／方向鍵／WASD 移動，Q 遠離、E 靠近；聚焦球場後可用滾輪縮放。</p><p id="game-status" role="status">其餘同伴會自由飛行，也會一起追逐金探子。</p><div class="actions"><button data-pause-flight>暫停同伴飛行</button><button data-flight-talk>與操控角色交談</button></div></div><div class="flight-manual"><div class="direction-pad" aria-label="飛行方向"><button data-flight="up" aria-label="往上飛">↑</button><button data-flight="left" aria-label="往左飛">←</button><button data-flight="down" aria-label="往下飛">↓</button><button data-flight="right" aria-label="往右飛">→</button></div><div class="depth-control"><label for="flight-depth">遠近距離</label><div><button data-flight="far" aria-label="往遠處飛，縮小">−</button><input id="flight-depth" type="range" min="0" max="100" value="50" aria-label="遠近距離，數值越大越靠近"><button data-flight="near" aria-label="往近處飛，放大">＋</button></div><small>遠處／縮小 <span>靠近／放大</span></small></div></div></div></div>`;
@@ -100,7 +102,7 @@ function roomView(id) {
   ] });
 }
 function officeView() { return scene('office','老師辦公室','THE PROFESSOR’S OFFICE','學生名冊就攤在桌上。靠近一點，翻開大家的故事。',{back:{route:'classroom',label:'← 回教室'}}); }
-function hallView() { return scene('atrium','Q 版大廳','LITTLE FRIENDS, LITTLE MOMENTS','四位朋友在這裡休息，暫時放下各自的行程。'); }
+function hallView() { return scene('hall','Q 版大廳','LITTLE FRIENDS, LITTLE MOMENTS','四位朋友在這裡休息，暫時放下各自的行程。'); }
 
 function arrangeScene() {
   const canvas = document.querySelector('.scene-canvas:not(.flight-field)');
@@ -114,9 +116,10 @@ function arrangeScene() {
   const host=roomAccess.host(state,currentRoute());
   const residents = host ? [{id:host,point:ROOM_HOST_POINT}] : isHall ? characters.map(c=>({id:c.id})) : residentsForScene(sceneId,state.character);
   const ids=residents.map(c=>c.id);
-  layer.innerHTML = residents.map(({id,point})=>{const c=character(id);return `<button class="scene-npc ${isHall?'':'standing-npc'} ${host?'room-host':''}" data-action="${isHall?'hall-talk':'talk'}" data-value="${id}" ${point?`data-spot="${point.name}"`:''} aria-label="與${c.short}交談"><img src="${asset(id+(isHall?'-chibi':''))}" alt="${c.short}" draggable="false"><span>${c.short} <i aria-hidden="true">✧</i></span></button>`;}).join('');
+  layer.innerHTML = residents.map(({id,point})=>{const c=character(id);return `<button class="scene-npc ${isHall?'hall-pet':'standing-npc'} ${host?'room-host':''}" data-action="${isHall?'hall-talk':'talk'}" data-value="${id}" ${point?`data-spot="${point.name}"`:''} aria-label="與${c.short}交談"><img src="${asset(id+(isHall?'-chibi':''))}" alt="${c.short}" draggable="false"><span>${c.short} <i aria-hidden="true">✧</i></span></button>`;}).join('');
   const image = canvas.querySelector('.scene-art, :scope > img');
   const anchors = [...canvas.querySelectorAll('[data-anchor]')];
+  let hallPets;
   function position() {
     const viewport = {width:canvas.clientWidth,height:canvas.clientHeight};
     if (!viewport.width || !viewport.height) return;
@@ -130,8 +133,13 @@ function arrangeScene() {
     const origin=canvas.getBoundingClientRect();
     const obstacles=[...canvas.querySelectorAll('[data-anchor],.map-pin,.pet-button')].map(el=>{const r=el.getBoundingClientRect();return{x:r.left-origin.left,y:r.top-origin.top,width:r.width,height:r.height};});
     if(isHall) {
-      const placements=scatterCharacters(ids,viewport,obstacles);
-      placements.forEach(p=>{const el=layer.querySelector(`[data-value="${p.id}"]`);el.style.left=`${p.x}px`;el.style.top=`${p.y}px`;el.style.width=`${p.width}px`;el.style.setProperty('--npc-size',`${p.size}px`);el.style.zIndex=Math.round(p.y);});
+      const size=clamp(viewport.width*.09,46,115);
+      const sizing=ids.map(id=>({id,size,width:size+12,height:size+27}));
+      if(hallPets)hallPets.resize(sizing);
+      else {
+        const placements=scatterCharacters(ids,viewport,obstacles);
+        hallPets=createHallPetController({canvas,elements:[...layer.querySelectorAll('.hall-pet')],placements});
+      }
     } else if(image.naturalWidth) {
       residents.forEach(({id,point})=>{
         const el=layer.querySelector(`[data-value="${id}"]`);
@@ -140,10 +148,16 @@ function arrangeScene() {
       });
     }
   }
-  scatterScene=position;
+  scatterScene=isHall?()=>{
+    if(!hallPets)return position();
+    const viewport={width:canvas.clientWidth,height:canvas.clientHeight};
+    const origin=canvas.getBoundingClientRect();
+    const obstacles=[...canvas.querySelectorAll('[data-anchor]')].map(el=>{const r=el.getBoundingClientRect();return{x:r.left-origin.left,y:r.top-origin.top,width:r.width,height:r.height};});
+    hallPets.scatter(scatterCharacters(ids,viewport,obstacles));
+  }:position;
   const resize=new ResizeObserver(position);resize.observe(canvas);
   image.addEventListener('load',position); position();
-  cleanups.push(()=>{resize.disconnect();image.removeEventListener('load',position);scatterScene=()=>{};});
+  cleanups.push(()=>{resize.disconnect();image.removeEventListener('load',position);hallPets?.destroy();scatterScene=()=>{};});
 }
 
 function recordsDialog() { showDialog('桌上的學生名冊', `<p>翻開名冊，選擇想認識的同學。</p><div class="story-list">${characters.map(c=>button('record',`${c.name} <i>查看 →</i>`,c.id)).join('')}</div>`); }
@@ -151,7 +165,7 @@ function versionDialog(){
   showDialog(`版本紀錄 · v${APP_VERSION}`,`<div class="version-history">${VERSION_HISTORY.map((release,index)=>`<section class="version-entry ${index===0?'current':''}"><header><strong>v${esc(release.version)}</strong><time datetime="${esc(release.date)}">${esc(release.date)}</time></header><h3>${esc(release.title)}</h3><ul>${release.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul></section>`).join('')}</div>`,button('close','關閉'));
 }
 function wardrobeDialog() {
-  showDialog('活米村的奇妙衣櫥',`<img class="dialog-portrait" src="${outfitAsset()}" alt="目前造型"><p>今天想以哪一種模樣漫遊校園？</p><div class="swatches">${[['uniform','學院制服'],['chibi','Q 版化身'],['cat','貓咪變身']].map(([v,t])=>`<button data-action="outfit" data-value="${v}" aria-pressed="${state.outfit===v}">${t}</button>`).join('')}</div><p class="source-note">找到貓咪夥伴，就能解鎖貓咪變身。</p>`);
+  showDialog('活米村的奇妙衣櫥',`<img class="dialog-portrait" src="${outfitAsset()}" alt="目前造型"><p>今天想以哪一種模樣漫遊校園？</p><div class="swatches">${[['uniform','學院制服'],['chibi','Q 版化身'],['cat','貓咪變身']].map(([v,t])=>`<button data-action="outfit" data-value="${v}" aria-pressed="${state.outfit===v}">${t}</button>`).join('')}</div><p class="source-note">找到寵物夥伴，就能解鎖貓咪變身。</p>`);
 }
 function weatherDialog() {
   showDialog('望遠鏡裡的天空',`<label for="city">觀測城市</label><select id="city"><option value="taipei">臺北</option><option value="london">倫敦</option><option value="edinburgh">愛丁堡</option></select><div id="weather" role="status"></div><p class="weather-credit">天氣資料：<a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a></p>`); loadWeather();
@@ -177,6 +191,7 @@ function render() {
   app.innerHTML = header(route) + page;
   document.title = `${document.querySelector('h1')?.textContent || '魔法學院'} · 魔法日常`;
   if (route === 'forest') findPet();
+  if (route.startsWith('room/') && roomAccess.canEnter(state,route.split('/')[1])) renderRoomPets(route.split('/')[1]);
   if (route === 'pitch' && pitchGame) {
     flightController=createFlightController({field:document.querySelector('#field'),controls:document.querySelector('#flight-controls'),selected:state.character,onTalk:talk});
     cleanups.push(()=>{flightController.destroy();flightController=null;});
@@ -234,15 +249,30 @@ function roomItem(id, item) {
   const title={diary:'桌上的日記',gift:c.gift,window:'窗邊的風景'}[item];
   showRoomConversation(id,title,own?`<p>這是${c.short}熟悉的房間。${item==='diary'?'日記停在上次寫下的那一頁。':item==='gift'?'小物好好地收在床頭。':'窗外傳來校園遠處的聲音。'}</p>`:`<p class="stage-direction">${esc(speech.action)}</p><p class="spoken-line">「${esc(speech.text)}」</p>`,actions);
 }
-function inventory() { showDialog('隨身行囊', `<h3>紀念小物</h3>${state.inventory.length ? `<ul class="inventory-list">${state.inventory.map(id=>`<li><span>${character(id).gift}</span>${button('gift','送給'+character(id).short,id)}</li>`).join('')}</ul>` : '<p class="muted">行囊裡還沒有小物，去朋友的宿舍看看吧。</p>'}<h3>貓咪夥伴 · ${state.pets.length}/4</h3><div class="pet-list">${state.pets.map(id=>`<img src="${asset(id+'-cat')}" alt="${character(id).short}的貓咪夥伴">`).join('')}</div><p class="muted">${state.pets.length ? '牠們會在這裡等著你。' : '森林裡或許能遇見新朋友。'}</p>`); }
+function inventory() {
+  const owned=petsFor(state);
+  showDialog('隨身行囊', `<h3>紀念小物</h3>${state.inventory.length ? `<ul class="inventory-list">${state.inventory.map(id=>`<li><span>${character(id).gift}</span>${button('gift','送給'+character(id).short,id)}</li>`).join('')}</ul>` : '<p class="muted">行囊裡還沒有小物，去朋友的宿舍看看吧。</p>'}<h3>寵物夥伴 · ${owned.length}/${PETS.length}</h3><div class="pet-list">${owned.map(id=>{const pet=PETS.find(p=>p.id===id);return `<figure><img src="${pet.image}" alt="${pet.name}"><figcaption>${pet.name}</figcaption></figure>`;}).join('')}</div><p class="muted">${owned.length ? '牠們已經在你的房間安頓下來了。' : '仔細看看森林各個角落，或許能遇見新朋友。'}</p>`);
+}
 let petId;
 function findPet() {
-  const stage = document.querySelector('#pet-stage'); if (!stage) return;
-  const available = characters.filter(c => !state.pets.includes(c.id));
-  if (!available.length) { stage.innerHTML = `<div class="panel"><h2>四位小夥伴都找到了！</h2><p>前往活米村，試試貓咪變身吧。</p>${link('village','前往活米村 →')}</div>`; return; }
-  petId = available[Math.floor(Math.random()*available.length)].id;
-  stage.innerHTML = `<button class="pet-button" style="left:${18+Math.random()*65}%;top:${48+Math.random()*35}%" data-action="catch-pet" data-value="${petId}" aria-label="靠近並收養這隻小貓"><img src="${asset(petId+'-cat')}" alt="森林裡的小貓"><span>輕輕伸出手　♡</span></button>`;
-  scatterScene();
+  const stage=document.querySelector('#pet-stage');
+  if(!stage||currentRoute()!=='forest'||!state.character)return;
+  const available=PETS.filter(p=>!petsFor(state).includes(p.id));
+  petId=null;
+  if(!available.length){stage.innerHTML=`<div class="panel"><h2>森林夥伴都找到了！</h2><p>牠們正在你的房間等你。</p>${link('room/'+state.character,'回房間看看 →')}</div>`;return;}
+  const pet=available[Math.floor(Math.random()*available.length)],point=hiddenPetPoint();
+  petId=pet.id;
+  stage.innerHTML=`<button class="pet-button forest-pet" style="left:${point.x}%;top:${point.y}%" data-action="catch-pet" data-value="${pet.id}" aria-label="捕捉${pet.name}"><img src="${pet.wildImage}" alt="野生的${pet.name}" draggable="false"></button>`;
+}
+function renderRoomPets(owner){
+  const canvas=document.querySelector('.scene-canvas');
+  if(!canvas)return;
+  const stage=document.createElement('div');stage.className='room-pets';stage.setAttribute('aria-label','房間裡的寵物');
+  stage.innerHTML=petsFor(state,owner).map((id,index)=>{
+    const pet=PETS.find(p=>p.id===id);
+    return `<button class="room-pet" style="left:${12+(index%5)*19}%;top:${86}%" data-action="pet-greet" data-value="${id}" aria-label="摸摸${pet.name}"><img src="${pet.image}" data-normal="${pet.image}" data-happy="${pet.happyImage}" alt="${pet.name}" draggable="false"></button>`;
+  }).join('');
+  canvas.append(stage);
 }
 function launch() {
   if (snitchActive) return;
@@ -289,7 +319,7 @@ document.addEventListener('click',e=>{
   const {action,value}=target.dataset;
   if(action==='close')dialog.close();
   if(action==='version-history')versionDialog();
-  if(action==='reset-progress')showDialog('重置探索紀錄',`<p>確定要重新開始嗎？角色選擇、初次招呼、探索足跡、收藏物品、貓咪夥伴與魁地奇紀錄都會被清除。</p><p class="reset-warning">這個動作無法復原。</p>`,button('close','先不要')+button('confirm-reset','確定重置','','danger'));
+  if(action==='reset-progress')showDialog('重置探索紀錄',`<p>確定要重新開始嗎？角色選擇、初次招呼、探索足跡、收藏物品、寵物夥伴與魁地奇紀錄都會被清除。</p><p class="reset-warning">這個動作無法復原。</p>`,button('close','先不要')+button('confirm-reset','確定重置','','danger'));
   if(action==='confirm-reset'){
     resetProgress(state);
     try{storage?.removeItem(STORAGE_KEY);}catch{}
@@ -325,8 +355,20 @@ document.addEventListener('click',e=>{
   if(action==='collect'){if(currentRoute()!==`room/${value}`||!roomAccess.canEnter(state,value))return;const c=character(value);if(state.inventory.includes(value)||state.gifts.includes(value)){toast('這份紀念小物已經收藏過了。');return;}collectGift(state,value);save();render();toast(`收藏了${c.gift}。`);}
   if(action==='gift'){if(giveGift(state,value)){save();const speech=dialogueFor(value,null,currentRoute(),'gift');(roomAccess.host(state,currentRoute())===value ? (title,body,actions)=>showRoomConversation(value,title,body,actions) : showDialog)('一份小小心意',`<p>${character(value).short}收下了${character(value).gift}。</p><p class="stage-direction">${speech.action}</p><p>「${speech.text}」</p>`,button('close','收下這段回憶','','primary'));}else toast('這份小物已送出，或還沒有找到。');}
   if(action==='find-pet')findPet();
-  if(action==='catch-pet'){if(value!==petId)return;remember(state.pets,value);save();render();toast('小貓願意跟著你了！已解鎖貓咪變身。');}
-  if(action==='outfit'){if(value==='cat'&&!state.pets.length){toast('先去禁忌森林和一隻小貓成為朋友吧。');return;}state.outfit=value;save();wardrobeDialog();toast('新造型已換上。');}
+  if(action==='catch-pet'){
+    if(currentRoute()!=='forest'||value!==petId||!capturePet(state,value))return;
+    petId=null;save();findPet();toast(`${PETS.find(p=>p.id===value).name}已住進${character(state.character).short}的房間！`);
+  }
+  if(action==='pet-greet'&&currentRoute().startsWith('room/')){
+    const owner=currentRoute().split('/')[1];
+    if(roomAccess.canEnter(state,owner)&&petsFor(state,owner).includes(value)){
+      const pet=PETS.find(p=>p.id===value),img=target.querySelector('img');
+      img.src=img.dataset.happy;target.classList.add('happy');
+      setTimeout(()=>{if(img.isConnected){img.src=img.dataset.normal;target.classList.remove('happy');}},1400);
+      toast(`${pet.name}開心地向你靠過來。`);
+    }
+  }
+  if(action==='outfit'){if(value==='cat'&&!state.pets.length&&!petsFor(state).length){toast('先去禁忌森林和一隻寵物成為朋友吧。');return;}state.outfit=value;save();wardrobeDialog();toast('新造型已換上。');}
   if(action==='launch')launch();
   if(action==='weather')loadWeather();
   if(action==='shuffle'){scatterScene();toast('往四周看看，朋友們換了個地方。');}
@@ -347,7 +389,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSch
 dialog.addEventListener('close',()=>{if(dialog.open)return;dialog.classList.remove('room-conversation');document.querySelector('.immersive')?.classList.remove('room-speaking');roomAccess.dismiss();queueMicrotask(refreshSchedule);});
 render();
 registerAgentTools({
-  readProgress: () => ({ character: state.character, visited: [...state.visited], met: [...state.met], pets: [...state.pets], read: [...state.read], catches: state.catches }),
+  readProgress: () => ({ character: state.character, visited: [...state.visited], met: [...state.met], pets: [...petsFor(state)], read: [...state.read], catches: state.catches }),
   navigate: async destination => {
     if (!['map','office','hall',...places.map(p=>p.id)].includes(destination)) throw new Error('Unknown destination');
     if (!state.character) throw new Error('Choose a character first');

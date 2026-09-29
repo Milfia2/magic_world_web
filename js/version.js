@@ -1,6 +1,14 @@
-export const APP_VERSION = '0.3.0';
+export const APP_VERSION = '0.4.1';
 
 export const VERSION_HISTORY = [
+  {version:'0.4.1',date:'2026-09-29',title:'寵物狀態與大廳墜落',changes:['森林、房間與點擊互動分別使用 wild、正常與 happy 寵物圖','大廳角色可拖到牆面，放開後會受重力落回地板','舊版寵物收藏自動合併為五種物種']},
+  {version:'0.4.0',date:'2026-09-29',title:'獨立大廳與森林寵物',changes:['大廳使用 Q_Lobby 背景，角色腳底限制在地板區域','森林改為尋找 15 隻半透明小寵物，捕捉後入住該角色房間','各角色寵物收藏獨立保存']},
+  {
+    version:'0.3.1',
+    date:'2026-09-29',
+    title:'Q 版大廳桌寵模式',
+    changes:['四位 Q 版角色會在大廳自行漫遊與轉向','支援滑鼠及觸控拖曳，輕點角色仍可交談'],
+  },
   {
     version:'0.3.0',
     date:'2026-09-24',
