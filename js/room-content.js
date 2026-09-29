@@ -1,8 +1,17 @@
-// Replace UTF-8 TXT files in content/diaries; no JavaScript changes required.
-export const DIARY_PATHS = Object.fromEntries(['abby','thea','gaile','zephyr'].map(id=>[id,`./content/diaries/${id}.txt`]));
-export async function readDiary(id, fetcher = fetch) {
+// Each character owns a private diary and a shorter page they choose to share.
+export const DIARY_PATHS = Object.fromEntries(['abby','thea','gaile','zephyr'].map(id=>[id,{
+  self:`./content/diaries/${id}_self.txt`,
+  shared:`./content/diaries/${id}.txt`,
+}]));
+export function diaryAudience(id, viewer, route, canEnterRoom = false) {
+  if(!Object.hasOwn(DIARY_PATHS,id))return null;
+  if(id===viewer)return 'self';
+  return route===`room/${id}`&&canEnterRoom?'shared':null;
+}
+export async function readDiary(id, audience, fetcher = fetch) {
   if (!Object.hasOwn(DIARY_PATHS,id)) throw new Error('Unknown diary');
-  const response=await fetcher(DIARY_PATHS[id]);
+  if(!['self','shared'].includes(audience))throw new Error('Unknown diary audience');
+  const response=await fetcher(DIARY_PATHS[id][audience]);
   if(!response.ok)throw new Error('Diary unavailable');
   const text=(await response.text()).replace(/^\uFEFF/,'').trim();
   if(!text)throw new Error('Empty diary');

@@ -7,13 +7,14 @@ import { dialogueFor } from './dialogue.js';
 import { residentsForScene, scheduleWindow } from './schedule.js';
 import { CHARACTER_SCALE } from './character-spawns.js';
 import { createRoomAccess } from './room-access.js';
-import { readDiary, ROOM_HOST_POINT, ROOM_REACTIONS } from './room-content.js';
+import { readDiary, diaryAudience, ROOM_HOST_POINT, ROOM_REACTIONS } from './room-content.js';
 import { ambientLine, clickedDialogue, distinctDialogue } from './ambient-dialogue.js';
 import { greetingFor } from './greetings.js';
 import { mountHeadConversation } from './head-conversation.js';
 import { APP_VERSION, VERSION_HISTORY } from './version.js';
 import { createHallPetController } from './hall-pets.js';
 import { PETS, petsFor, capturePet, hiddenPetPoint } from './pets.js';
+import { readLibraryStory } from './library-content.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#dialog');
@@ -164,6 +165,18 @@ function recordsDialog() { showDialog('桌上的學生名冊', `<p>翻開名冊�
 function versionDialog(){
   showDialog(`版本紀錄 · v${APP_VERSION}`,`<div class="version-history">${VERSION_HISTORY.map((release,index)=>`<section class="version-entry ${index===0?'current':''}"><header><strong>v${esc(release.version)}</strong><time datetime="${esc(release.date)}">${esc(release.date)}</time></header><h3>${esc(release.title)}</h3><ul>${release.changes.map(change=>`<li>${esc(change)}</li>`).join('')}</ul></section>`).join('')}</div>`,button('close','關閉'));
 }
+async function libraryStory(id){
+  const story=stories.find(item=>item.id===id);
+  if(!story)return;
+  showDialog(story.title,`<span class="eyebrow">${esc(story.label)} · 館藏文章</span><article class="reading reading-source" data-library-story="${esc(story.id)}" aria-live="polite">正在取書……</article>`,button('read','讀完了，收藏這篇文章',story.id,'primary'));
+  const article=dialog.querySelector(`[data-library-story="${story.id}"]`);
+  try{
+    const text=await readLibraryStory(story.id);
+    if(article?.isConnected&&article.dataset.libraryStory===story.id)article.textContent=text;
+  }catch{
+    if(article?.isConnected&&article.dataset.libraryStory===story.id)article.textContent='暫時無法讀取這篇文章，請稍後再試。';
+  }
+}
 function wardrobeDialog() {
   showDialog('活米村的奇妙衣櫥',`<img class="dialog-portrait" src="${outfitAsset()}" alt="目前造型"><p>今天想以哪一種模樣漫遊校園？</p><div class="swatches">${[['uniform','學院制服'],['chibi','Q 版化身'],['cat','貓咪變身']].map(([v,t])=>`<button data-action="outfit" data-value="${v}" aria-pressed="${state.outfit===v}">${t}</button>`).join('')}</div><p class="source-note">找到寵物夥伴，就能解鎖貓咪變身。</p>`);
 }
@@ -233,16 +246,18 @@ function talk(id, topic = 'scene', hall = false) {
 }
 async function journal(id = state.character) {
   if(!character(id)){toast('請先選擇角色，再閱讀他的日記。');return;}
-  if(id!==state.character && !(currentRoute()===`room/${id}`&&roomAccess.canEnter(state,id))){toast('需要和房間主人一起，才能翻閱他的日記。');return;}
-  showDialog(`${character(id).short}的日記`, '<p class="source-note">角色日記 · 目前為示範內容</p><article class="character-diary" aria-live="polite">正在翻開日記……</article>',button('close','闔上日記'));
+  const audience=diaryAudience(id,state.character,currentRoute(),roomAccess.canEnter(state,id));
+  if(!audience){toast('需要和房間主人一起，才能翻閱他願意分享的日記。');return;}
+  const own=audience==='self';
+  showDialog(`${character(id).short}的日記`, `<p class="source-note">${own?'自己的私人日記':'房間主人分享的頁面'}</p><article class="character-diary" aria-live="polite">正在翻開日記……</article>`,button('close','闔上日記'));
   const article=dialog.querySelector('.character-diary');
-  try {const text=await readDiary(id);if(article.isConnected)article.textContent=text;}
+  try {const text=await readDiary(id,audience);if(article.isConnected)article.textContent=text;}
   catch {if(article.isConnected){article.textContent='暫時無法讀取日記，請稍後再試。';article.insertAdjacentHTML('afterend',button('read-diary','重新讀取',id));}}
 }
 function roomItem(id, item) {
   if(currentRoute()!==`room/${id}`||!roomAccess.canEnter(state,id)||!ROOM_REACTIONS[id]?.[item])return;
   const c=character(id), own=id===state.character, speech=ROOM_REACTIONS[id][item];
-  let actions=item==='diary'?button('read-diary','翻閱這一頁',id,'primary'):'';
+  let actions=item==='diary'?button('read-diary',own?'翻閱私人日記':'翻閱分享頁面',id,'primary'):'';
   const collected=state.inventory.includes(id)||state.gifts.includes(id);
   if(item==='gift'&&!collected)actions+=button('collect',own?'收進行囊':'收下這份小物',id,'primary');
   if(item==='gift'&&collected)actions+='<p class="source-note">這份小物已經收藏過了。</p>';
@@ -349,8 +364,8 @@ document.addEventListener('click',e=>{
   if(action==='topic'||action==='hall-topic'){const [id,topic]=value.split(':');talk(id,topic,action==='hall-topic');}
   if(action==='journal')journal();
   if(action==='inventory')inventory();
-  if(action==='story'){const s=stories.find(s=>s.id===value);showDialog(s.title,`<span class="eyebrow">${s.label} · 試讀短篇</span><article class="reading">${s.text.map(t=>`<p>${t}</p>`).join('')}</article>`,button('read','讀完了，收藏這段故事',s.id,'primary'));}
-  if(action==='read'){remember(state.read,value);save();render();toast('故事已收進冒險手記。');}
+  if(action==='story')libraryStory(value);
+  if(action==='read'){remember(state.read,value);save();render();toast('文章已收進冒險手記。');}
   if(action==='record'){const c=character(value);showDialog(c.name,`<p class="eyebrow">${c.english} · ${c.schoolHouse}</p><dl class="character-facts"><div><dt>身高</dt><dd>${c.height} cm</dd></div><div><dt>生日</dt><dd>${c.birthday}</dd></div><div><dt>擅長科目</dt><dd>${c.subject}</dd></div>${c.position?`<div><dt>球隊位置</dt><dd>${c.position}</dd></div>`:''}</dl><img class="record-img" src="${asset(value+'-record')}" alt="${c.name}的學生資訊紀錄表原稿；年級等未提供欄位保持空白">`,button('records','← 返回學生名冊'));}
   if(action==='collect'){if(currentRoute()!==`room/${value}`||!roomAccess.canEnter(state,value))return;const c=character(value);if(state.inventory.includes(value)||state.gifts.includes(value)){toast('這份紀念小物已經收藏過了。');return;}collectGift(state,value);save();render();toast(`收藏了${c.gift}。`);}
   if(action==='gift'){if(giveGift(state,value)){save();const speech=dialogueFor(value,null,currentRoute(),'gift');(roomAccess.host(state,currentRoute())===value ? (title,body,actions)=>showRoomConversation(value,title,body,actions) : showDialog)('一份小小心意',`<p>${character(value).short}收下了${character(value).gift}。</p><p class="stage-direction">${speech.action}</p><p>「${speech.text}」</p>`,button('close','收下這段回憶','','primary'));}else toast('這份小物已送出，或還沒有找到。');}
@@ -368,7 +383,7 @@ document.addEventListener('click',e=>{
       toast(`${pet.name}開心地向你靠過來。`);
     }
   }
-  if(action==='outfit'){if(value==='cat'&&!state.pets.length&&!petsFor(state).length){toast('先去禁忌森林和一隻寵物成為朋友吧。');return;}state.outfit=value;save();wardrobeDialog();toast('新造型已換上。');}
+  if(action==='outfit'){state.outfit=value;save();wardrobeDialog();toast('新造型已換上。');}
   if(action==='launch')launch();
   if(action==='weather')loadWeather();
   if(action==='shuffle'){scatterScene();toast('往四周看看，朋友們換了個地方。');}

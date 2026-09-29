@@ -16,9 +16,9 @@ export const places = [
   { id: 'village', name: '活米村', en: 'HOGSMEADE', desc: '閃亮亮換裝小鎮', icon: '♙', x: 17, y: 84 },
 ];
 export const stories = [
-  { id: 'letter', title: '一封遲到的入學信', label: '序章', text: ['信封滑進門縫的時候，窗外正下著細雨。你撿起它，在厚實的紙面上摸到一枚微微凸起的封印。', '「有些路，要等你準備好才會出現。」信紙只寫了這一句。再抬起頭，窗外已不再是熟悉的街道，而是一座亮著燈的城堡。', '你把信收進口袋，推開門。中庭的鐘聲，剛好敲響。'] },
-  { id: 'stars', title: '借來的星光', label: '校園篇', text: ['天文臺的樓梯，比想像中還要長。當你終於推開頂樓的小門，所有的疲倦都在一瞬間消失了。', '有人替你留了一個靠窗的位置。桌上攤著星圖，旁邊放著兩杯冒著熱氣的茶。', '「別急著找星座，」那個聲音說，「先看見你喜歡的那一顆。」'] },
-  { id: 'footprints', title: '森林裡的小腳印', label: '奇遇篇', text: ['石板路的盡頭，有一串小小的腳印。你沿著腳印走進樹影，聽見一聲短促的叫喚。', '一隻小貓坐在倒下的樹幹上，彷彿早就知道你會來。牠歪著頭，打量你口袋裡的餅乾。', '你蹲下身伸出手。這一次，森林並沒有那麼陌生。'] },
+  { id: 'report', title: '〈同心圓〉', label: '預言家日報', path: './content/library/report.txt' },
+  { id: 'secret', title: '校園秘辛：一年級女同學 A 的獨白', label: '校園秘辛', path: './content/library/secret.txt' },
+  { id: 'secret2', title: '校園秘辛：二年級學生 B 的目擊紀錄', label: '校園秘辛', path: './content/library/secret2.txt' },
 ];
 export const lore = [
   ['四個學院', '獅院珍視勇氣，獾院相信善意，鷹院追尋知識，蛇院懷抱志向。不同的起點，都能通往同一場友誼。'],

@@ -9,9 +9,9 @@ test('new visitor and unavailable/corrupt storage can start safely', () => {
   assert.deepEqual(from({version:999}).pets, []);
 });
 test('saved progress is restored but invalid IDs and unsafe values are discarded', () => {
-  const state=from({version:1,character:'thea',met:['abby','abby','invalid'],pets:['zephyr'],visited:['library','unknown'],read:['stars'],catches:-3,outfit:'script',diary:'a'.repeat(4500)});
+  const state=from({version:1,character:'thea',met:['abby','abby','invalid'],pets:['zephyr'],visited:['library','unknown'],read:['secret'],catches:-3,outfit:'script',diary:'a'.repeat(4500)});
   assert.equal(state.character,'thea');assert.deepEqual(state.met,['abby']);assert.deepEqual(state.pets,['zephyr']);
-  assert.deepEqual(state.visited,['library']);assert.deepEqual(state.read,['stars']);assert.equal(state.catches,0);
+  assert.deepEqual(state.visited,['library']);assert.deepEqual(state.read,['secret']);assert.equal(state.catches,0);
   assert.equal(state.outfit,'uniform');assert.equal(state.diary.length,4000);
 });
 test('a prior encounter is not a room key; an active visit or owning the room is required', () => {
@@ -31,13 +31,13 @@ test('a collected gift can be given only once and is consumed', () => {
 });
 test('progress remains stable across save/reload and character switching', () => {
   const state=from({version:1,character:'abby',diary:'今天遇見了一位新朋友。',catches:2});
-  remember(state.read,'letter');remember(state.read,'letter');remember(state.pets,'gaile');
+  remember(state.read,'report');remember(state.read,'report');remember(state.pets,'gaile');
   state.character='zephyr';const restored=from(state);
-  assert.equal(restored.character,'zephyr');assert.deepEqual(restored.read,['letter']);
+  assert.equal(restored.character,'zephyr');assert.deepEqual(restored.read,['report']);
   assert.deepEqual(restored.pets,['gaile']);assert.equal(restored.diary,state.diary);assert.equal(restored.catches,2);
 });
 test('reset returns every saved field to a fresh visitor state',()=>{
-  const state=from({version:1,character:'thea',met:['abby'],greeted:['thea:abby'],visited:['library'],inventory:['abby'],pets:['gaile'],read:['letter'],gifts:['zephyr'],outfit:'cat',catches:5,diary:'秘密'});
+  const state=from({version:1,character:'thea',met:['abby'],greeted:['thea:abby'],visited:['library'],inventory:['abby'],pets:['gaile'],read:['report'],gifts:['zephyr'],outfit:'cat',catches:5,diary:'秘密'});
   const same=resetProgress(state);
   assert.equal(same,state);
   assert.deepEqual(state,loadState(null));

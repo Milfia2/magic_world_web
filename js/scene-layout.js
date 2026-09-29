@@ -3,9 +3,9 @@
 export const sceneObjects = {
   atrium: [{ label: '攤開校園地圖', action: 'open-map', x: 16, y: 70, w: 15, h: 12, image: 'map', style: 'laid-map' }],
   library: [
-    { label: '一封遲到的入學信', action: 'story', value: 'letter', x: 19, y: 76, w: 13, h: 8 },
-    { label: '借來的星光', action: 'story', value: 'stars', x: 34, y: 65, w: 10, h: 7 },
-    { label: '森林裡的小腳印', action: 'story', value: 'footprints', x: 94, y: 82, w: 10, h: 15 },
+    { label: '〈同心圓〉', action: 'story', value: 'report', x: 19, y: 76, w: 13, h: 8 },
+    { label: '校園秘辛：一年級女同學 A 的獨白', action: 'story', value: 'secret', x: 34, y: 65, w: 10, h: 7 },
+    { label: '校園秘辛：二年級學生 B 的目擊紀錄', action: 'story', value: 'secret2', x: 94, y: 82, w: 10, h: 15 },
   ],
   classroom: [
     { label: '閱讀黑板上的世界設定', action: 'lore', x: 46, y: 31, w: 40, h: 25 },
