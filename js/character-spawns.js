@@ -20,12 +20,6 @@ export const SPAWN_POINTS = {
   observatory: [
     { name: '星盤地毯', x: 73, y: 95, height: 53 },
   ],
-  office: [
-    { name: '左側書架前', x: 12, y: 89, height: 35 },
-    { name: '椅子後方', x: 34, y: 59, height: 26 },
-    { name: '書桌右側', x: 76, y: 90, height: 35 },
-    { name: '右側牆邊', x: 92, y: 85, height: 31 },
-  ],
   dorms: [
     { name: '左側大門前', x: 13, y: 87, height: 35 },
     { name: '左側地毯', x: 38, y: 91, height: 37 },
