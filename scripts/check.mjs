@@ -5,6 +5,7 @@ import { characters, places, stories, asset } from '../js/data.js';
 import { DIARY_PATHS } from '../js/room-content.js';
 import { PETS } from '../js/pets.js';
 const root = resolve(import.meta.dirname, '..');
+for (const file of ['js/chat-config.js','js/chat-memory.js','js/free-chat.js','local-chat/engine.mjs','local-chat/server.mjs','scripts/pull-local-model.mjs']) execFileSync(process.execPath, ['--check', resolve(root,file)], {stdio:'inherit'});
 await access(resolve(root,asset('hall')));
 for(const pet of PETS)for(const image of [pet.image,pet.wildImage,pet.happyImage])await access(resolve(root,image));
 for(const story of stories)await access(resolve(root,story.path));

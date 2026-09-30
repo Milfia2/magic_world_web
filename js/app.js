@@ -15,12 +15,18 @@ import { APP_VERSION, VERSION_HISTORY } from './version.js';
 import { createHallPetController } from './hall-pets.js';
 import { PETS, petsFor, capturePet, hiddenPetPoint } from './pets.js';
 import { readLibraryStory } from './library-content.js';
+import { FreeChatClient } from './free-chat.js';
 
 const app = document.querySelector('#app');
 const dialog = document.querySelector('#dialog');
 let storage;
 try { storage = window.localStorage; } catch { storage = null; }
 const state = loadState(storage);
+let chatStorage;
+try { chatStorage = window.sessionStorage; } catch {}
+let chatMemoryStorage;
+try { chatMemoryStorage = window.localStorage; } catch {}
+const freeChat = new FreeChatClient(chatStorage,undefined,chatMemoryStorage);
 const roomAccess = createRoomAccess();
 const lastSmallTalk = new Map();
 const lastHeadDialogue = new Map();
@@ -46,7 +52,14 @@ function go(route) { if (currentRoute() === route) render(); else location.hash 
 function period() { const h = new Date().getHours(); return h >= 6 && h < 18 ? 'day' : 'night'; }
 function header(route) {
   const c = character(state.character);
-  return `<header class="topbar"><a class="brand" href="#/${c ? 'atrium' : 'select'}"><span class="ornament" aria-hidden="true">✧</span><span class="brand-title">魔法日常<small>MAGIC WORLD</small></span></a><nav class="top-nav" aria-label="主要導覽"><a class="${route === 'map' ? 'active' : ''}" href="#/map">校園地圖</a><a class="${route === 'hall' ? 'active' : ''}" href="#/hall">Q 版大廳</a>${button('version-history', `v${APP_VERSION}`, '', 'text-button version-button')}${button('reset-progress', '重置紀錄', '', 'text-button reset-button')}</nav><div class="profile">${c ? `<img src="${asset(c.id + '-chibi')}" alt=""><a href="#/select">${c.short}<small>${c.house} · 切換角色</small></a>` : '<span class="clock">一段日常，一點魔法</span>'}</div></header>`;
+  return `<header class="topbar"><a class="brand" href="#/${c ? 'atrium' : 'select'}"><span class="ornament" aria-hidden="true">✧</span><span class="brand-title">魔法日常<small>MAGIC WORLD</small></span></a><nav class="top-nav" aria-label="主要導覽"><a class="${route === 'map' ? 'active' : ''}" href="#/map">校園地圖</a><a class="${route === 'hall' ? 'active' : ''}" href="#/hall">Q 版大廳</a>${button('chat-settings','對話連線','','text-button')}${button('version-history', `v${APP_VERSION}`, '', 'text-button version-button')}${button('reset-progress', '重置紀錄', '', 'text-button reset-button')}</nav><div class="profile">${c ? `<img src="${asset(c.id + '-chibi')}" alt=""><a href="#/select">${c.short}<small>${c.house} · 切換角色</small></a>` : '<span class="clock">一段日常，一點魔法</span>'}</div></header>`;
+}
+function chatForm(speaker) {
+  if (!state.character || speaker === state.character) return '';
+  return `<form class="free-chat-form" data-chat-speaker="${speaker}"><label>以${esc(character(state.character).short)}的身分說話<textarea name="message" rows="2" maxlength="1500" required placeholder="想對${esc(character(speaker).short)}說什麼？"></textarea></label><button type="submit" class="primary">送出</button><p class="chat-status" role="status">${freeChat.connected?'記憶保存在此瀏覽器，每組角色保留最近 10 則訊息。':'先在上方「對話連線」登入，再開始聊天。'}</p></form>`;
+}
+function chatSettings() {
+  showDialog('對話連線',`<form id="chat-connect" class="chat-connect"><label>對話服務網址<input name="endpoint" type="url" required value="${esc(freeChat.url)}" placeholder="https://chat.example.com"></label><label>連線密碼<input name="password" type="password" required autocomplete="off"></label><button type="submit" class="primary">連線</button><p class="chat-status" role="status">連線資訊只保存在這個瀏覽器分頁。主機需保持開啟。</p></form>`);
 }
 function selection() {
   return `<main id="main" class="selection"><div class="selection-head"><span class="eyebrow">YOUR STORY BEGINS HERE</span><h1>角色選擇</h1><p>選擇帶入角色</p></div><div class="character-grid" role="group" aria-label="選擇帶入角色">${characters.map(c => `<button class="character-card ${c.id === chosen ? 'selected' : ''}" style="--house:${c.color}" data-action="choose" data-value="${c.id}" aria-pressed="${c.id === chosen}"><span class="house-label">${c.house} · ${c.virtue}</span><div class="portrait"><img src="${asset(c.id)}" alt="${c.name}" fetchpriority="high"></div><h2>${c.name}</h2><span class="english">${c.english}</span><p class="quote">${c.intro}</p></button>`).join('')}</div><div class="selection-footer">${button('enter', `以${character(chosen).short}的身分，進入學院　→`, '', 'primary')}<p>探索紀錄會保存在這個瀏覽器，隨時可以回來。</p><div class="secondary-links">${link('map', '先看看校園地圖', '')}${link('hall', '前往 Q 版大廳 ↗', '')}${button('about', '關於這個世界', '', 'text-button')}</div></div></main>`;
@@ -243,7 +256,7 @@ function talk(id, topic = 'scene', hall = false) {
   }
   lastHeadDialogue.set(dialogueKey,speech.text);
   const actionName = hall ? 'hall-topic' : 'topic';
-  const topics = [['small-talk','聊點日常'],['friends','說說彼此的近況'],['lost','如果一起迷路了？'],['upset','今天有一點低落']].map(([key,label])=>button(actionName,label,`${id}:${key}`)).join('');
+  const topics = [['small-talk','聊點日常'],['friends','說說彼此的近況'],['lost','如果一起迷路了？'],['upset','今天有一點低落']].map(([key,label])=>button(actionName,label,`${id}:${key}`)).join('')+chatForm(id);
   const speechBody=`<p class="stage-direction">${esc(speech.action)}</p><p class="spoken-line">「${esc(speech.text)}」</p>`;
   if(roomAccess.host(state,currentRoute())===id){
     showRoomConversation(id,'房間裡的悄悄話',speechBody,topics+(state.inventory.includes(id)?button('gift','送出'+c.gift,id):''));return;
@@ -334,15 +347,17 @@ async function loadWeather() {
     el.innerHTML=`<div class="weather-value">${Math.round(data.current.temperature_2m)}°<span style="font-size:18px">C</span></div><p>${description} · 觀測時間 ${esc(data.current.time.replace('T',' '))}</p><div class="weather-days">${data.daily.time.map((day,i)=>`<div>${esc(day.slice(5))}<strong>${Math.round(data.daily.temperature_2m_min[i])}–${Math.round(data.daily.temperature_2m_max[i])}°</strong></div>`).join('')}</div>`;
   } catch {if(el.isConnected&&el.dataset.request===requestId)el.innerHTML=`<p>暫時無法取得天氣，請稍後重試。</p>${button('weather','重新觀測')}`;} finally {clearTimeout(timeout);}
 }
-document.addEventListener('click',e=>{
+document.addEventListener('click',async e=>{
   const navigation=e.target.closest('a[href^="#/"]');
   if(navigation && dialog.open) dialog.close();
   const target=e.target.closest('[data-action]'); if(!target)return;
   const {action,value}=target.dataset;
   if(action==='close')dialog.close();
   if(action==='version-history')versionDialog();
-  if(action==='reset-progress')showDialog('重置探索紀錄',`<p>確定要重新開始嗎？角色選擇、初次招呼、探索足跡、收藏物品、寵物夥伴與魁地奇紀錄都會被清除。</p><p class="reset-warning">這個動作無法復原。</p>`,button('close','先不要')+button('confirm-reset','確定重置','','danger'));
+  if(action==='chat-settings')chatSettings();
+  if(action==='reset-progress')showDialog('重置探索紀錄',`<p>確定要重新開始嗎？角色選擇、初次招呼、探索足跡、收藏物品、寵物夥伴、魁地奇紀錄，以及此瀏覽器的角色對話記憶與身分疑慮都會被清除。</p><p>朋友不會記得你先前說過的話，但下次交談時，可能短暫覺得自己忘了什麼。</p><p class="reset-warning">這個動作無法復原。</p>`,button('close','先不要')+button('confirm-reset','確定重置','','danger'));
   if(action==='confirm-reset'){
+    try { await freeChat.reset(); } catch(error) { toast(error.message);return; }
     resetProgress(state);
     try{storage?.removeItem(STORAGE_KEY);}catch{}
     roomAccess.dismiss();lastSmallTalk.clear();lastHeadDialogue.clear();chosen='abby';pitchGame=false;
@@ -397,6 +412,29 @@ document.addEventListener('click',e=>{
   if(action==='shuffle'){scatterScene();toast('往四周看看，朋友們換了個地方。');}
   if(action==='hall-talk')talk(value,'scene',true);
   if(action==='about')showDialog('歡迎來到魔法日常',`<p>四位熟識的朋友，四種不同的校園日常。選擇角色，看看大家今天在哪裡，讀一段故事，或一起飛一圈。</p><p class="source-note">目前版本 v${APP_VERSION} · 角色資料依照提供的 Character Bible；互動台詞為依設定編寫的情境草稿。角色與場景使用專案提供的素材。</p>`,button('version-history','查看版本紀錄'));
+});
+document.addEventListener('submit',async e=>{
+  const form=e.target;
+  if(form.id!=='chat-connect'&&!form.matches('.free-chat-form'))return;
+  e.preventDefault();
+  const status=form.querySelector('.chat-status'), submit=form.querySelector('[type=submit]');
+  const data=new FormData(form), player=state.character, route=currentRoute();
+  const replyNode=form.closest('.room-conversation')?.querySelector('.spoken-line')||document.querySelector('.head-conversation p');
+  submit.disabled=true;
+  try{
+    if(form.id==='chat-connect'){
+      status.textContent='正在連線……';
+      await freeChat.connect(data.get('endpoint'),data.get('password'));
+      if(form.isConnected){status.textContent='已連線。回到角色身邊即可自由對談。';form.elements.password.value='';}
+    }else{
+      status.textContent=`${character(form.dataset.chatSpeaker).short}正在想怎麼回應……`;
+      const reply=await freeChat.send(player,form.dataset.chatSpeaker,route,data.get('message'));
+      if(form.isConnected&&replyNode?.isConnected&&player===state.character&&route===currentRoute()){
+        replyNode.textContent=reply;form.elements.message.value='';status.textContent=freeChat.memory.persistent?'對話記憶已儲存在此瀏覽器。':'瀏覽器儲存不可用，記憶只保留至關閉或重新整理頁面。';
+      }
+    }
+  }catch(error){if(form.isConnected)status.textContent=error.message;}
+  finally{if(form.isConnected)submit.disabled=false;}
 });
 document.addEventListener('change',e=>{if(e.target.id==='city')loadWeather();});
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});

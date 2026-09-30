@@ -1,13 +1,16 @@
 {
   "name": "magic-world-web",
-  "version": "0.4.6",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "chat:start": "pwsh -NoProfile -File scripts/start-local-chat.ps1",
+    "chat:stop": "pwsh -NoProfile -File scripts/stop-local-chat.ps1",
+    "chat:pull": "node scripts/pull-local-model.mjs"
   },
   "engines": { "node": ">=22" }
 }

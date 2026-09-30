@@ -1,6 +1,6 @@
 # 魔法日常 · Magic World
 
-依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.6**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
+依 FigJam 功能流程與 Figma 原型建立的互動初版。純 HTML、CSS 與原生 JavaScript，無執行階段套件、無後端；可部署在 GitHub Pages 的 repository 子路徑。目前版本為 **v0.4.7**，更新內容見 [CHANGELOG.md](./CHANGELOG.md)。
 
 Q 版大廳採用 `source/Q_Lobby.png`；自主漫遊限制在地板，拖曳可到整個畫面，放開後會落回地板。`js/hall-pets.js` 的 `hallFloorY` 設定地板線（原圖高度 81%）。森林有 5 種寵物，依序使用 `_wild`、無後綴和 `_happy` 圖作為野生、房間與短暫互動狀態，收藏按角色分開保存。森林顯示大小與透明度可在 `scene.css` 的 `.forest-pet` 調整；出現範圍在 `js/pets.js` 的 `hiddenPetPoint`。
 
@@ -89,6 +89,10 @@ tests/greetings.test.mjs    配對招呼、儲存、切換角色與手動對話�
 docs/scene-tuning.md        角色與物品座標調整說明
 .github/workflows/pages.yml GitHub Pages 建置部署
 ```
+
+## 本機 LLM 自由對話（0.5.0）
+
+網站「對話連線」可連接本機密碼保護的 Qwen API。安裝、啟動與固定 HTTPS Tunnel 設定見 [後端說明](local-chat/README.md)。世界觀與角色設定 `llm_set/` 僅留後端，已排除 Git 和 Pages；新機需另外複製。尚無網域時先使用本機網址，遠端玩家不能用自己的 localhost 連到你的電腦。
 
 ## 素材與後續擴充
 

@@ -1,6 +1,10 @@
-export const APP_VERSION = '0.4.6';
+export const APP_VERSION = '0.6.0';
 
 export const VERSION_HISTORY = [
+  {version:'0.6.0',date:'2026-09-30',title:'瀏覽器對話記憶',changes:['近期對話、身分疑慮與重置狀態改存 localStorage','後端不再保存對話 session，僅讀取本輪提供的記憶並推理','支援離線重置與跨分頁舊回覆防護；連線密碼仍只存 sessionStorage']},
+  {version:'0.5.1',date:'2026-09-30',title:'瀏覽器對話連線修正',changes:['修正 fetch 呼叫綁定造成 Illegal invocation、請求未送出的問題','新增模擬瀏覽器 Window 綁定的回歸測試']},
+  {version:'0.5.0',date:'2026-09-30',title:'本機角色自由對話',changes:['前端可用連線密碼連接本機 Qwen API','角色設定僅由後端按需讀取，對話依角色配對保存近期記憶與疑慮','重置會清除自由對話記憶，保留短暫遺忘感；預留固定 HTTPS Tunnel 設定']},
+  {version:'0.4.7',date:'2026-09-30',title:'角色 Prompt 模組化',changes:['將共通世界觀、四位角色設定、範例對話分拆為按需載入檔案','六組雙人關係各自保存，只載入本輪相關人物','建立每角色情境記憶槽、載入 manifest 與結構驗證；尚未啟用自由對話']},
   {version:'0.4.6',date:'2026-09-29',title:'排程缺位防護',changes:['沒有候選位置或已移除位置設定的場景不再參與角色抽選','偏好地點不可用時自動改派至角色其他有位置的偏好地點','修正排程讀取 undefined.length 導致的工作流程失敗']},
   {version:'0.4.5',date:'2026-09-29',title:'場景容量排程',changes:['排程檢查改為遵循 SCHEDULE_HOURS 設定，不再寫死三小時','角色數量超過場景候選位置時，自動依個人偏好移往其他尚有空位的地點','相同時段的改派結果固定，並保證每位角色都有有效且不重複的位置']},
   {version:'0.4.4',date:'2026-09-29',title:'最前線記者專欄',changes:['新增 report2〈Bubble gum〉館藏文章','report 與 report2 合併為同一作者的專欄 1、專欄 2','文章閱讀頁可返回專欄目錄']},
