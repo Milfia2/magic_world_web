@@ -18,7 +18,7 @@ export async function readDiary(id, audience, fetcher = fetch) {
   return text;
 }
 
-export const ROOM_HOST_POINT = { name:'陪你坐坐', x:79, y:89, height:62 };
+export const ROOM_HOST_POINT = { name:'陪你坐坐', x:60, y:94, height:62 };
 const line=(action,text)=>({action,text});
 export const ROOM_REACTIONS = {
   abby: {

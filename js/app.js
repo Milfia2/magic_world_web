@@ -143,6 +143,7 @@ function arrangeScene() {
   const artId = document.querySelector('.immersive').dataset.scene;
   const sceneId = artId.endsWith('-room') ? `room/${artId.slice(0,-5)}` : artId;
   const host=roomAccess.host(state,currentRoute());
+  layer.classList.toggle('room-npc-layer',Boolean(host));
   const residents = host ? [{id:host,point:ROOM_HOST_POINT}] : isHall ? characters.map(c=>({id:c.id})) : residentsForScene(sceneId,state.character,new Date(),activeScheduleOverrides());
   const ids=residents.map(c=>c.id);
   layer.innerHTML = residents.map(({id,point})=>{const c=character(id);return `<button class="scene-npc ${isHall?'hall-pet':'standing-npc'} ${host?'room-host':''}" data-action="${isHall?'hall-talk':'talk'}" data-value="${id}" ${point?`data-spot="${point.name}"`:''} aria-label="與${c.short}交談"><img src="${asset(id+(isHall?'-chibi':''))}" alt="${c.short}" draggable="false"><span>${c.short} <i aria-hidden="true">✧</i></span></button>`;}).join('');
