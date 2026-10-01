@@ -1,12 +1,13 @@
 /* Shared image-coordinate canvas: objects remain attached to desks and doors. */
 /* Hidden creatures stay small and faint until found; room companions are fully visible. */
 .pet-button.forest-pet{width:clamp(24px,3.2vw,44px);height:clamp(24px,3.2vw,44px);opacity:.35;border:0;padding:0;min-width:0;min-height:0;box-shadow:none}
-.pet-button.forest-pet img{width:100%;height:100%;object-fit:contain;filter:none}
+.pet-button.forest-pet img{width:100%;height:100%;object-fit:contain;filter:none;transform:scale(var(--pet-scale,1))}
 .pet-button.forest-pet:hover{opacity:.5}.pet-button.forest-pet:focus-visible{opacity:.8;outline:1px solid var(--gold)}
 .room-pets{position:absolute;inset:0;pointer-events:none;z-index:6}
-.room-pet{position:absolute;transform:translate(-50%,-100%);width:clamp(30px,5vw,68px);height:clamp(30px,5vw,68px);pointer-events:auto;padding:0;border:0;background:transparent!important}
-.room-pet img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 2px #0004)}
-.room-pet:hover img{translate:0 -3px}.room-pet.happy img{animation:pet-happy .38s ease-in-out 3}.pet-list figure{margin:0;text-align:center}.pet-list figcaption{font-size:11px}@keyframes pet-happy{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.08)}}
+.room-pet{position:absolute;transform:translate(-50%,-100%);width:clamp(30px,5vw,68px);height:clamp(30px,5vw,68px);pointer-events:auto;padding:0;border:0;background:transparent!important;cursor:grab;touch-action:none;user-select:none}
+.room-pet.dragging{cursor:grabbing;filter:drop-shadow(0 0 8px #ffe9a788)}
+.room-pet img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 3px 2px #0004);transform:scale(var(--pet-scale,1));transform-origin:center bottom}
+.room-pet:hover img{translate:0 -3px}.room-pet.happy img{animation:pet-happy .38s ease-in-out 3}.pet-list figure{margin:0;text-align:center}.pet-list figcaption{font-size:11px}@keyframes pet-happy{0%,100%{transform:translateY(0) scale(var(--pet-scale,1))}50%{transform:translateY(-7px) scale(var(--pet-scale,1))}}
 .head-conversation{position:fixed;z-index:30;width:max-content;max-width:min(320px,calc(100vw - 16px));padding:12px 16px;border:1px solid #c3a56d;border-radius:14px;background:#fff5e1;color:#3b3024;box-shadow:0 5px 18px #0004}.head-conversation:after{content:'';position:absolute;top:100%;left:var(--tail-x,50%);transform:translateX(-50%);border:9px solid transparent;border-top-color:#fff5e1}.head-conversation>strong{display:block;color:#8b6741;font-size:12px}.head-conversation p{font-size:14px;line-height:1.7;margin:5px 0 0;overflow-wrap:anywhere}.head-conversation[hidden]{display:none}.head-conversation-options{display:flex;flex-wrap:wrap;gap:8px;max-width:1448px;margin:auto;padding:12px 20px;background:#17232e;border-top:1px solid #b99b6255}.head-conversation-options button{font-size:12px;padding:8px 12px}.head-conversation-options .primary{color:#292722}@media(max-width:600px){.head-conversation{max-width:min(280px,calc(100vw - 16px));padding:9px 12px}.head-conversation p{font-size:12px}.head-conversation-options{padding:10px 16px;gap:6px}}
 /* Room dialogue: half-body art is cropped, never stretched, above a translucent panel. */
 dialog.room-conversation{inset:0;width:100%;max-width:none;height:100svh;max-height:none;margin:0;padding:0;border:0;background:transparent;box-shadow:none;overflow:hidden;color:var(--paper)}

@@ -13,7 +13,8 @@ import { greetingFor } from './greetings.js';
 import { mountHeadConversation } from './head-conversation.js';
 import { APP_VERSION, VERSION_HISTORY } from './version.js';
 import { createHallPetController } from './hall-pets.js';
-import { PETS, petsFor, capturePet, hiddenPetPoint } from './pets.js';
+import { PETS, petsFor, capturePet, releasePet, hiddenPetPoint } from './pets.js';
+import { createRoomPetController } from './room-pets.js';
 import { readLibraryStory } from './library-content.js';
 import { FreeChatClient } from './free-chat.js';
 
@@ -300,7 +301,7 @@ function roomItem(id, item) {
 }
 function inventory() {
   const owned=petsFor(state);
-  showDialog('隨身行囊', `<h3>紀念小物</h3>${state.inventory.length ? `<ul class="inventory-list">${state.inventory.map(id=>`<li><span>${character(id).gift}</span>${button('gift','送給'+character(id).short,id)}</li>`).join('')}</ul>` : '<p class="muted">行囊裡還沒有小物，去朋友的宿舍看看吧。</p>'}<h3>寵物夥伴 · ${owned.length}/${PETS.length}</h3><div class="pet-list">${owned.map(id=>{const pet=PETS.find(p=>p.id===id);return `<figure><img src="${pet.image}" alt="${pet.name}"><figcaption>${pet.name}</figcaption></figure>`;}).join('')}</div><p class="muted">${owned.length ? '牠們已經在你的房間安頓下來了。' : '仔細看看森林各個角落，或許能遇見新朋友。'}</p>`);
+  showDialog('隨身行囊', `<h3>紀念小物</h3>${state.inventory.length ? `<ul class="inventory-list">${state.inventory.map(id=>`<li><span>${character(id).gift}</span>${button('gift','送給'+character(id).short,id)}</li>`).join('')}</ul>` : '<p class="muted">行囊裡還沒有小物，去朋友的宿舍看看吧。</p>'}<h3>寵物夥伴 · ${owned.length}/${PETS.length}</h3><div class="pet-list">${owned.map(id=>{const pet=PETS.find(p=>p.id===id);return `<figure><img src="${pet.image}" alt="${pet.name}"><figcaption>${pet.name}</figcaption>${button('release-pet','放生',id,'text-button')}</figure>`;}).join('')}</div><p class="muted">${owned.length ? '牠們已經在你的房間安頓下來了。' : '仔細看看森林各個角落，或許能遇見新朋友。'}</p>`);
 }
 let petId;
 function findPet() {
@@ -311,7 +312,7 @@ function findPet() {
   if(!available.length){stage.innerHTML=`<div class="panel"><h2>森林夥伴都找到了！</h2><p>牠們正在你的房間等你。</p>${link('room/'+state.character,'回房間看看 →')}</div>`;return;}
   const pet=available[Math.floor(Math.random()*available.length)],point=hiddenPetPoint();
   petId=pet.id;
-  stage.innerHTML=`<button class="pet-button forest-pet" style="left:${point.x}%;top:${point.y}%" data-action="catch-pet" data-value="${pet.id}" aria-label="捕捉${pet.name}"><img src="${pet.wildImage}" alt="野生的${pet.name}" draggable="false"></button>`;
+  stage.innerHTML=`<button class="pet-button forest-pet" style="left:${point.x}%;top:${point.y}%;--pet-scale:${pet.scale}" data-action="catch-pet" data-value="${pet.id}" aria-label="捕捉${pet.name}"><img src="${pet.wildImage}" alt="野生的${pet.name}" draggable="false"></button>`;
 }
 function renderRoomPets(owner){
   const canvas=document.querySelector('.scene-canvas');
@@ -319,9 +320,12 @@ function renderRoomPets(owner){
   const stage=document.createElement('div');stage.className='room-pets';stage.setAttribute('aria-label','房間裡的寵物');
   stage.innerHTML=petsFor(state,owner).map((id,index)=>{
     const pet=PETS.find(p=>p.id===id);
-    return `<button class="room-pet" style="left:${12+(index%5)*19}%;top:${86}%" data-action="pet-greet" data-value="${id}" aria-label="摸摸${pet.name}"><img src="${pet.image}" data-normal="${pet.image}" data-happy="${pet.happyImage}" alt="${pet.name}" draggable="false"></button>`;
+    const point=state.petPositions[owner][id]||{x:12+(index%5)*19,y:86};
+    return `<button class="room-pet" style="left:${point.x}%;top:${point.y}%;--pet-scale:${pet.scale}" data-x="${point.x}" data-y="${point.y}" data-action="pet-greet" data-value="${id}" aria-label="拖曳或摸摸${pet.name}"><img src="${pet.image}" data-normal="${pet.image}" data-happy="${pet.happyImage}" alt="${pet.name}" draggable="false"></button>`;
   }).join('');
   canvas.append(stage);
+  const controller=createRoomPetController({canvas,elements:[...stage.querySelectorAll('.room-pet')],onMove:(id,point)=>{state.petPositions[owner][id]=point;save();}});
+  cleanups.push(()=>controller.destroy());
 }
 function launch() {
   if (snitchActive) return;
@@ -400,6 +404,14 @@ document.addEventListener('click',async e=>{
   if(action==='topic'||action==='hall-topic'){const [id,topic]=value.split(':');talk(id,topic,action==='hall-topic');}
   if(action==='journal')journal();
   if(action==='inventory')inventory();
+  if(action==='release-pet'){
+    const pet=PETS.find(p=>p.id===value);
+    if(pet&&petsFor(state).includes(value))showDialog(`讓${pet.name}回到森林？`,`<p>放生後，${pet.name}會離開房間，但你之後仍有機會在森林再次遇見牠。</p>`,button('inventory','先不要')+button('confirm-release-pet','確認放生',value,'danger'));
+  }
+  if(action==='confirm-release-pet'){
+    const pet=PETS.find(p=>p.id===value);
+    if(pet&&releasePet(state,value)){save();render();toast(`${pet.name}已回到森林，之後還能再次遇見牠。`);}
+  }
   if(action==='story')libraryStory(value);
   if(action==='story-series')storySeries(value);
   if(action==='read'){remember(state.read,value);save();render();toast('文章已收進冒險手記。');}

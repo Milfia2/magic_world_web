@@ -9,10 +9,12 @@ test('new visitor and unavailable/corrupt storage can start safely', () => {
   assert.deepEqual(from({version:999}).pets, []);
 });
 test('saved progress is restored but invalid IDs and unsafe values are discarded', () => {
-  const state=from({version:1,character:'thea',met:['abby','abby','invalid'],pets:['zephyr'],visited:['library','unknown'],read:['secret'],catches:-3,outfit:'script',diary:'a'.repeat(4500)});
+  const state=from({version:1,character:'thea',met:['abby','abby','invalid'],pets:['zephyr'],visited:['library','unknown'],read:['secret'],catches:-3,outfit:'script',diary:'a'.repeat(4500),petPositions:{thea:{niffler:{x:42,y:73},bad:{x:20,y:20}},abby:{fluffy:{x:-1,y:200}}}});
   assert.equal(state.character,'thea');assert.deepEqual(state.met,['abby']);assert.deepEqual(state.pets,['zephyr']);
   assert.deepEqual(state.visited,['library']);assert.deepEqual(state.read,['secret']);assert.equal(state.catches,0);
   assert.equal(state.outfit,'uniform');assert.equal(state.diary.length,4000);
+  assert.deepEqual(state.petPositions.thea,{niffler:{x:42,y:73}});
+  assert.deepEqual(state.petPositions.abby,{});
 });
 test('a prior encounter is not a room key; an active visit or owning the room is required', () => {
   const state=from({version:1,character:'abby'});

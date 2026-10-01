@@ -1,14 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadState, resetProgress } from '../js/state.js';
-import { capturePet, petsFor, PETS, hiddenPetPoint } from '../js/pets.js';
+import { capturePet, releasePet, petsFor, PETS, hiddenPetPoint } from '../js/pets.js';
 import { constrainHallPet, constrainDraggedHallPet, advanceHallPet, advanceFallingHallPet, hallFloorY } from '../js/hall-pets.js';
+import { clampRoomPetPoint } from '../js/room-pets.js';
 
 test('each creature has normal, wild and happy artwork',()=>{
   assert.equal(PETS.length,5);
+  assert.equal(new Set(PETS.map(pet=>pet.scale)).size,PETS.length);
   for(const pet of PETS){
     assert.match(pet.image,/\.png$/);assert.match(pet.wildImage,/\.png$/);assert.match(pet.happyImage,/_happy\.png$/);
     assert.notEqual(pet.image,pet.wildImage);assert.notEqual(pet.image,pet.happyImage);
+    assert.ok(Number.isFinite(pet.scale)&&pet.scale>0);
   }
 });
 
@@ -22,6 +25,17 @@ test('caught pets belong to their catcher and persist without leaking across rol
   assert.deepEqual(petsFor(saved,'abby'),[PETS[0].id]);
   assert.deepEqual(petsFor(saved,'thea'),[PETS[1].id]);
   resetProgress(saved);assert.deepEqual(petsFor(saved,'abby'),[]);
+});
+test('releasing a pet removes only its owner copy and saved room position',()=>{
+  const state=loadState(null);state.character='abby';
+  capturePet(state,PETS[0].id);state.petPositions.abby[PETS[0].id]={x:40,y:70};
+  state.character='thea';capturePet(state,PETS[0].id);
+  state.character='abby';
+  assert.equal(releasePet(state,PETS[0].id),true);
+  assert.deepEqual(petsFor(state),[]);assert.equal(state.petPositions.abby[PETS[0].id],undefined);
+  assert.deepEqual(petsFor(state,'thea'),[PETS[0].id]);
+  assert.equal(releasePet(state,PETS[0].id),false);
+  assert.equal(capturePet(state,PETS[0].id),true);
 });
 test('legacy progress stays intact and malformed pet records are filtered',()=>{
   const state=loadState({getItem:()=>JSON.stringify({version:1,character:'abby',pets:['thea'],companions:{abby:['bowtruckle-1','bowtruckle-3','bad'],thea:'bad'}})});
@@ -40,6 +54,10 @@ test('dragging can lift a hall character above the floor before gravity lands th
 test('hidden pet positions cover upper and lower corners with inset margins',()=>{
   assert.deepEqual(hiddenPetPoint(()=>0),{x:5,y:6});
   assert.deepEqual(hiddenPetPoint(()=>1),{x:95,y:94});
+});
+test('room pet positions stay inside draggable room bounds',()=>{
+  assert.deepEqual(clampRoomPetPoint({x:-20,y:200}),{x:4,y:96});
+  assert.deepEqual(clampRoomPetPoint({x:43.5,y:72}),{x:43.5,y:72});
 });
 test('drag, bounce and resize keep hall feet on the projected floor at desktop and mobile sizes',()=>{
   for(const [width,height] of [[1280,720],[390,292.5],[320,240]]){

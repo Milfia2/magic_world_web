@@ -40,10 +40,10 @@ export const SPAWN_POINTS = {
 
   ],
   pitch: [
-    { name: '左側球場邊', x: 13, y: 83, height: 39 },
-    { name: '遠端草地', x: 36, y: 66, height: 27 },
-    { name: '球門右側', x: 64, y: 73, height: 31 },
-    { name: '右側看台前', x: 86, y: 89, height: 44 },
+    { name: '左側球場邊', x: 13, y: 110, height: 60 },
+    { name: '遠端草地', x: 36, y: 66, height: 11 },
+    { name: '球門右側', x: 64, y: 73, height: 14 },
+    { name: '右側看台前', x: 86, y: 110, height: 60 },
   ],
   'room/abby': [
     { name: '書桌旁', x: 33, y: 88, height: 40 },
