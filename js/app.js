@@ -42,6 +42,18 @@ let flightController;
 let scatterScene = () => {};
 let pitchGame = false;
 let renderedScheduleKey = '';
+let scheduleOverrideKey = '';
+const scheduleOverrides = new Map();
+function activeScheduleOverrides() {
+  const key=scheduleWindow().key;
+  if(scheduleOverrideKey!==key){scheduleOverrideKey=key;scheduleOverrides.clear();}
+  return scheduleOverrides;
+}
+function moveCharacter(id,destination) {
+  const overrides=activeScheduleOverrides();
+  overrides.delete(id);overrides.set(id,destination);
+  roomAccess.depart(id);renderedScheduleKey='';
+}
 const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const link = (route, text, cls = 'action') => `<a class="${cls}" href="#/${route}">${text}</a>`;
 const button = (action, text, value = '', cls = '') => `<button class="${cls}" data-action="${action}" data-value="${value}">${text}</button>`;
@@ -107,7 +119,7 @@ function outfitAsset() { return asset(state.character + (state.outfit === 'unifo
 function roomView(id) {
   const c = character(id);
   if (!c) return null;
-  const hostIsHome=residentsForScene(`room/${id}`,state.character).some(person=>person.id===id);
+  const hostIsHome=residentsForScene(`room/${id}`,state.character,new Date(),activeScheduleOverrides()).some(person=>person.id===id);
   roomAccess.enterWhileHome(id,state.character,hostIsHome);
   if (!roomAccess.canEnter(state,id)) return scene('dorms', '先敲門，再作客', 'BY INVITATION ONLY', `不能直接進入${c.short}的房間。請在校園找到本人，交談後選擇「去房間看看」一起回來。`, { back: {route:'dorms',label:'← 宿舍大廳'} });
   const points = roomObjects[id];
@@ -130,7 +142,7 @@ function arrangeScene() {
   const artId = document.querySelector('.immersive').dataset.scene;
   const sceneId = artId.endsWith('-room') ? `room/${artId.slice(0,-5)}` : artId;
   const host=roomAccess.host(state,currentRoute());
-  const residents = host ? [{id:host,point:ROOM_HOST_POINT}] : isHall ? characters.map(c=>({id:c.id})) : residentsForScene(sceneId,state.character);
+  const residents = host ? [{id:host,point:ROOM_HOST_POINT}] : isHall ? characters.map(c=>({id:c.id})) : residentsForScene(sceneId,state.character,new Date(),activeScheduleOverrides());
   const ids=residents.map(c=>c.id);
   layer.innerHTML = residents.map(({id,point})=>{const c=character(id);return `<button class="scene-npc ${isHall?'hall-pet':'standing-npc'} ${host?'room-host':''}" data-action="${isHall?'hall-talk':'talk'}" data-value="${id}" ${point?`data-spot="${point.name}"`:''} aria-label="與${c.short}交談"><img src="${asset(id+(isHall?'-chibi':''))}" alt="${c.short}" draggable="false"><span>${c.short} <i aria-hidden="true">✧</i></span></button>`;}).join('');
   const image = canvas.querySelector('.scene-art, :scope > img');
@@ -430,9 +442,13 @@ document.addEventListener('submit',async e=>{
       if(form.isConnected){status.textContent='已連線。回到角色身邊即可自由對談。';form.elements.password.value='';}
     }else{
       status.textContent=`${character(form.dataset.chatSpeaker).short}正在想怎麼回應……`;
-      const reply=await freeChat.send(player,form.dataset.chatSpeaker,route,data.get('message'));
+      const speaker=form.dataset.chatSpeaker;
+      const response=await freeChat.send(player,speaker,route,data.get('message'));
       if(form.isConnected&&replyNode?.isConnected&&player===state.character&&route===currentRoute()){
-        replyNode.textContent=reply;form.elements.message.value='';status.textContent=freeChat.memory.persistent?'對話記憶已儲存在此瀏覽器。':'瀏覽器儲存不可用，記憶只保留至關閉或重新整理頁面。';
+        replyNode.textContent=response.reply;form.elements.message.value='';
+        const destination=places.find(place=>place.id===response.destination);
+        if(destination){moveCharacter(speaker,destination.id);status.textContent=`${character(speaker).short}答應前往${destination.name}；本時段會在那裡等你。`;}
+        else status.textContent=freeChat.memory.persistent?'對話記憶已儲存在此瀏覽器。':'瀏覽器儲存不可用，記憶只保留至關閉或重新整理頁面。';
       }
     }
   }catch(error){if(form.isConnected)status.textContent=error.message;}

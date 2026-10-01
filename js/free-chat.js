@@ -1,5 +1,6 @@
 import { CHAT_API_URL } from './chat-config.js';
 import { BrowserChatMemory } from './chat-memory.js';
+import { isChatDestination } from './chat-destinations.js';
 
 export function normalizeChatUrl(value) {
   const url = new URL(value);
@@ -51,9 +52,10 @@ export class FreeChatClient {
       const key=`${player}:${speaker}`, snapshot=this.memory.snapshot(key);
       const response=await this.request('/api/chat',{protocol:2,player,speaker,scene,message,memory:snapshot.pair,resetEcho:snapshot.resetEcho},this.controller.signal);
       if (revision !== this.revision) throw new Error('紀錄已重置。');
-      if(response.protocol!==2 || typeof response.reply!=='string' || !response.reply.trim())throw new Error('對話服務回傳無效資料。');
+      const destination=response.destination==null?null:response.destination;
+      if(response.protocol!==2 || typeof response.reply!=='string' || !response.reply.trim() || (destination!==null&&!isChatDestination(destination)))throw new Error('對話服務回傳無效資料。');
       this.memory.commit(key,snapshot,{history:[...snapshot.pair.history,{role:'user',content:message.trim()},{role:'assistant',content:response.reply}].slice(-10),suspicion:response.suspicion,echoSeen:true});
-      return response.reply;
+      return {reply:response.reply,destination};
     } finally { this.pending = false; }
   }
 }

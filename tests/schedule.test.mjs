@@ -71,3 +71,18 @@ test('the ordinary pitch can host scheduled residents while most scenes remain e
   }
   assert.ok(pitchEncounters>0);
 });
+test('an invited character takes the destination and displaces its scheduled occupant',()=>{
+  let date, occupant;
+  search: for(let day=1;day<=30;day++)for(let hour=0;hour<24;hour+=SCHEDULE_HOURS){
+    const candidate=new Date(2026,8,day,hour);
+    occupant=scheduledRoster(candidate).find(person=>person.scene==='observatory');
+    if(occupant){date=candidate;break search;}
+  }
+  assert.ok(date&&occupant);
+  const invited=ids.find(id=>id!==occupant.id);
+  const roster=scheduledRoster(date,new Map([[invited,'observatory']]));
+  assert.equal(roster.find(person=>person.id===invited).scene,'observatory');
+  assert.notEqual(roster.find(person=>person.id===occupant.id).scene,'observatory');
+  assert.equal(new Set(roster.map(person=>`${person.scene}:${person.point.name}`)).size,4);
+  assert.deepEqual(residentsForScene('observatory',null,date,new Map([[invited,'observatory']])).map(person=>person.id),[invited]);
+});

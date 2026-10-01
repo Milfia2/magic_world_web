@@ -19,6 +19,10 @@ export function createRoomAccess() {
       visit = {host,guest}; invitation = null; return true;
     },
     dismiss() { invitation = null; },
+    depart(host) {
+      if(invitation?.host===host)invitation=null;
+      if(visit?.host===host)visit=null;
+    },
     sync(guest, route) {
       invitation = null;
       if (visit && (visit.guest !== guest || route !== `room/${visit.host}`)) visit = null;

@@ -45,16 +45,20 @@ function fallbackScenes(id, primary, key) {
 }
 function allocateScenes(roster,key){
   const used=new Map(),assigned=new Map();
-  for(const person of shuffled(roster,randomFor(`${key}:assignment-order`))){
+  const order=shuffled(roster,randomFor(`${key}:assignment-order`)).sort((a,b)=>b.priority-a.priority);
+  for(const person of order){
     const scene=fallbackScenes(person.id,person.scene,key).find(candidate=>(used.get(candidate)||0)<(SPAWN_POINTS[candidate]?.length||0));
     if(!scene)throw new Error(`No available scene for ${person.id}`);
     used.set(scene,(used.get(scene)||0)+1);assigned.set(person.id,scene);
   }
-  return roster.map(person=>({...person,scene:assigned.get(person.id)}));
+  return roster.map(person=>({id:person.id,scene:assigned.get(person.id)}));
 }
-export function scheduledRoster(date = new Date()) {
+export function scheduledRoster(date = new Date(), overrides = new Map()) {
   const {slot,key}=scheduleWindow(date);
-  const preferred=Object.keys(LOCATION_PREFERENCES).map(id=>({id,scene:dailyLocations(id,date)[slot]}));
+  const entries=overrides instanceof Map?[...overrides.entries()]:Object.entries(overrides||{});
+  const requested=new Map(entries.filter(([,scene])=>SPAWN_POINTS[scene]?.length&&!scene.startsWith('room/')));
+  const priorities=new Map([...requested.keys()].map((id,index)=>[id,index+1]));
+  const preferred=Object.keys(LOCATION_PREFERENCES).map(id=>({id,scene:requested.get(id)||dailyLocations(id,date)[slot],priority:priorities.get(id)||0}));
   const roster=allocateScenes(preferred,key);
   const occupied=new Map();
   return roster.map(person=>{
@@ -63,8 +67,8 @@ export function scheduledRoster(date = new Date()) {
     return {...person,point:spots.shift()};
   });
 }
-export function residentsForScene(scene, selected, date = new Date()) {
+export function residentsForScene(scene, selected, date = new Date(), overrides = new Map()) {
   if (scene === 'map' || scene === 'select') return [];
-  return scheduledRoster(date).filter(person=>person.scene===scene && person.id!==selected &&
+  return scheduledRoster(date,overrides).filter(person=>person.scene===scene && person.id!==selected &&
     (!scene.startsWith('room/') || scene===`room/${person.id}`));
 }

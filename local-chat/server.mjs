@@ -4,6 +4,7 @@ import { realpathSync } from 'node:fs';
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { ChatEngine, ChatError } from './engine.mjs';
+import { CHAT_DESTINATION_IDS } from '../js/chat-destinations.js';
 
 export async function localConfig() {
   const dir = new URL('../.local-llm/', import.meta.url), file = new URL('config.json', dir);
@@ -22,7 +23,7 @@ export function ollamaGenerator(config, fetcher = fetch) {
       const response = await fetcher(`${config.ollamaUrl}/api/chat`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.any([signal, AbortSignal.timeout(90000)]),
         body: JSON.stringify({ model: config.model, messages, stream: false, think: false, keep_alive: '10m',
-          format: { type: 'object', properties: { reply: { type: 'string' }, deviation: { type: 'string', enum: ['none', 'mild', 'strong'] } }, required: ['reply', 'deviation'], additionalProperties: false },
+          format: { type: 'object', properties: { reply: { type: 'string' }, deviation: { type: 'string', enum: ['none', 'mild', 'strong'] }, destination: { type: 'string', enum: ['none', ...CHAT_DESTINATION_IDS] } }, required: ['reply', 'deviation', 'destination'], additionalProperties: false },
           options: { num_ctx: 8192, num_predict: 450, temperature: 0.7 } }),
       });
       if (!response.ok) throw new Error('model unavailable');
