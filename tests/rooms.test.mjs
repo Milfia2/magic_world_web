@@ -15,6 +15,15 @@ test('only a visible ordinary-scene encounter offers a visit',()=>{
   assert.equal(access.canEnter(state,'thea'),false);
   assert.equal(access.canEnter(state,'abby'),true);
 });
+test('a guest can enter directly only while the host is in their room',()=>{
+  const access=createRoomAccess();
+  assert.equal(access.enterWhileHome('thea','abby',false),false);
+  assert.equal(access.canEnter(state,'thea'),false);
+  assert.equal(access.enterWhileHome('thea','abby',true),true);
+  assert.equal(access.canEnter(state,'thea'),true);
+  access.sync('abby','dorms');
+  assert.equal(access.canEnter(state,'thea'),false);
+});
 test('the visit is bound to the host, guest, encounter location and time window',()=>{
   for(const args of [['gaile','abby','forest','day:1'],['thea','zephyr','forest','day:1'],['thea','abby','pitch','day:1'],['thea','abby','forest','day:2']])assert.equal(invited().enter(...args),false);
   const access=invited();assert.equal(access.enter('thea','abby','forest','day:1'),true);

@@ -2,11 +2,11 @@ import test, { after } from 'node:test';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { ChatEngine as ProductionEngine } from '../local-chat/engine.mjs';
-import { createChatServer } from '../local-chat/server.mjs';
+import { createChatServer, isEntrypoint } from '../local-chat/server.mjs';
 import { FreeChatClient, normalizeChatUrl } from '../js/free-chat.js';
 
 // Synthetic profiles keep CI independent of private backend character documents.
@@ -25,6 +25,9 @@ import { BrowserChatMemory, CHAT_MEMORY_KEY } from '../js/chat-memory.js';
 const storage=()=>{const data=new Map();return {getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};};
 const input={protocol:2,player:'abby',speaker:'gaile',scene:'教室',message:'一起看星星吧！'};
 const result={protocol:2,reply:'好，我帶星圖。',suspicion:1};
+test('the gateway entrypoint recognises its resolved path',()=>{
+  assert.equal(isEntrypoint(fileURLToPath(new URL('../local-chat/server.mjs', import.meta.url))),true);
+});
 function clientWith(memory,fetcher=async()=>({ok:true,json:async()=>result}),credentials=storage()){
   const client=new FreeChatClient(credentials,fetcher,memory);
   client.saved={url:'http://127.0.0.1:8787',password:'test-only',protocol:2};client.save();return client;

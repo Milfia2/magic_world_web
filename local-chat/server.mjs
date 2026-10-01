@@ -1,8 +1,8 @@
 import http from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
 import { randomBytes, createHash, timingSafeEqual } from 'node:crypto';
-import { pathToFileURL } from 'node:url';
-import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ChatEngine, ChatError } from './engine.mjs';
 
 export async function localConfig() {
@@ -76,7 +76,12 @@ export function createChatServer(config, engine = new ChatEngine({ generate: oll
     } catch (e) { send(e.status || 500, { error: e instanceof ChatError ? e.message : '服務暫時無法處理，請稍後再試。' }); }
   });
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+export function isEntrypoint(entryPath, moduleUrl = import.meta.url) {
+  if (!entryPath) return false;
+  try { return realpathSync(entryPath) === realpathSync(fileURLToPath(moduleUrl)); }
+  catch { return false; }
+}
+if (isEntrypoint(process.argv[1])) {
   const config = await localConfig();
   createChatServer(config).listen(config.port, '127.0.0.1', () => console.log(`Local character chat: http://127.0.0.1:${config.port} (password in .local-llm/config.json)`));
 }

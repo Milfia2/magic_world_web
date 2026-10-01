@@ -14,6 +14,10 @@ export function createRoomAccess() {
       if (!invitation || Object.entries({host,guest,scene,window}).some(([key,value])=>invitation[key]!==value)) return false;
       visit = {host,guest}; invitation = null; return true;
     },
+    enterWhileHome(host, guest, isHome) {
+      if (!isHome || !host || !guest || host === guest) return false;
+      visit = {host,guest}; invitation = null; return true;
+    },
     dismiss() { invitation = null; },
     sync(guest, route) {
       invitation = null;

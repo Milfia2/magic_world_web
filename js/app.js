@@ -107,9 +107,11 @@ function outfitAsset() { return asset(state.character + (state.outfit === 'unifo
 function roomView(id) {
   const c = character(id);
   if (!c) return null;
+  const hostIsHome=residentsForScene(`room/${id}`,state.character).some(person=>person.id===id);
+  roomAccess.enterWhileHome(id,state.character,hostIsHome);
   if (!roomAccess.canEnter(state,id)) return scene('dorms', '先敲門，再作客', 'BY INVITATION ONLY', `不能直接進入${c.short}的房間。請在校園找到本人，交談後選擇「去房間看看」一起回來。`, { back: {route:'dorms',label:'← 宿舍大廳'} });
   const points = roomObjects[id];
-  return scene(id + '-room', `${c.short}的房間`, `${c.english} · PRIVATE ROOM`, id===state.character?'回到自己的房間，翻翻日記、看看熟悉的小物。':`${c.short}陪你回到了房間。點選日記、小物或窗戶，聽聽對方怎麼說。離開後需重新邀約。`, { back: {route:'dorms',label:'← 離開房間'}, objects: [
+  return scene(id + '-room', `${c.short}的房間`, `${c.english} · PRIVATE ROOM`, id===state.character?'回到自己的房間，翻翻日記、看看熟悉的小物。':hostIsHome?`${c.short}剛好在房間。點選日記、小物或窗戶，聽聽對方怎麼說。離開後需重新敲門。`:`${c.short}陪你回到了房間。點選日記、小物或窗戶，聽聽對方怎麼說。離開後需重新邀約。`, { back: {route:'dorms',label:'← 離開房間'}, objects: [
     {label:`桌上的日記 · ${c.short}的日記`,action:'room-item',value:`${id}:diary`,x:points.diary[0],y:points.diary[1],w:18,h:9},
     {label:'床頭的小物 · '+c.gift,action:'room-item',value:`${id}:gift`,x:points.gift[0],y:points.gift[1],w:10,h:12},
     {label:'窗邊的風景',action:'room-item',value:`${id}:window`,x:49,y:36,w:23,h:23},
