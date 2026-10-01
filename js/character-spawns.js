@@ -42,7 +42,7 @@ export const SPAWN_POINTS = {
   pitch: [
     { name: '左側球場邊', x: 13, y: 110, height: 60 },
     { name: '遠端草地', x: 36, y: 66, height: 11 },
-    { name: '球門右側', x: 64, y: 73, height: 14 },
+   { name: '球門右側', x: 64, y: 73, height: 14 },
     { name: '右側看台前', x: 86, y: 110, height: 60 },
   ],
   'room/abby': [
@@ -55,7 +55,7 @@ export const SPAWN_POINTS = {
     { name: '窗前', x: 49, y: 76, height: 32 },
     { name: '床尾', x: 79, y: 88, height: 39 },
   ],
-  'room/gaile': [
+  'room/caleb': [
     { name: '書桌旁', x: 36, y: 89, height: 40 },
     { name: '窗前', x: 51, y: 77, height: 32 },
     { name: '床尾', x: 80, y: 89, height: 39 },
@@ -68,14 +68,14 @@ export const SPAWN_POINTS = {
 };
 
 // 同一位置的個別角色倍率；可單獨調整，不影響其他人。
-export const CHARACTER_SCALE = { abby: .88, thea: 1, gaile: 1.04, zephyr: 1.09 };
+export const CHARACTER_SCALE = { abby: .88, thea: 1, caleb: 1.04, zephyr: 1.09 };
 
 // 權重越高越常出現，但每個時段每人仍只在一個地方。
 // 私人房間只能列出角色自己的房間。行程間隔由 SCHEDULE_HOURS 控制。
 export const LOCATION_PREFERENCES = {
   abby: { classroom: 7, atrium: 5, pitch: 5, library: 2, office: 2, village: 2, dorms: 1, 'room/abby': 2 },
   thea: { forest: 8, atrium: 6, village: 3, observatory: 2, dorms: 2, library: 1, classroom: 1, pitch: 1, 'room/thea': 2 },
-  gaile: { observatory: 8, library: 7, classroom: 3, office: 2, atrium: 2, village: 1, pitch: 1, 'room/gaile': 3 },
+  caleb: { observatory: 8, library: 7, classroom: 3, office: 2, atrium: 2, village: 1, pitch: 1, 'room/caleb': 3 },
   zephyr: { pitch: 8, atrium: 4, village: 3, observatory: 2, library: 1, classroom: 1, dorms: 2, 'room/zephyr': 3 },
 };
 export const SCHEDULE_HOURS = 1;

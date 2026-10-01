@@ -15,7 +15,7 @@
 
 例如把 `x:12` 改成 `x:17` 就往右移；把 `height:31` 改成 `height:25` 就縮小。位置以原圖為準，不是瀏覽器截圖：背景採底部對齊，桌面與角色同步縮放。寬螢幕會裁掉背景上方，候選位置建議放在地面且預留頭頂、左右與姓名標籤空間。
 
-`CHARACTER_SCALE` 可微調單一角色的整體大小；最終高度是 `height × CHARACTER_SCALE`。`gaile` 是蓋勒 Caleb 的既有素材／存檔 ID，不要直接改名。每個共用地點目前保留四個候選位置，新增地點或刪減位置時，應保留至少四個位置，避免多人同時抵達沒有位置可用。
+`CHARACTER_SCALE` 可微調單一角色的整體大小；最終高度是 `height × CHARACTER_SCALE`。`caleb` 是蓋勒 Caleb 的既有素材／存檔 ID，不要直接改名。每個共用地點目前保留四個候選位置，新增地點或刪減位置時，應保留至少四個位置，避免多人同時抵達沒有位置可用。
 
 重新整理網頁即可看到設定更新；無須清除進度。若目前該處無人，可查看 `schedule.js` 的 `scheduledRoster()` 結果或等待下一時段；不要為了預覽改動存檔。可用終端機唯讀檢查當前行程：
 
@@ -69,7 +69,7 @@ node --input-type=module -e "import {scheduledRoster} from './js/schedule.js'; c
 
 - `content/diaries/abby.txt`：艾比。
 - `content/diaries/thea.txt`：西婭。
-- `content/diaries/gaile.txt`：蓋勒 Caleb（沿用既有 ID）。
+- `content/diaries/caleb.txt`：蓋勒 Caleb（沿用既有 ID）。
 - `content/diaries/zephyr.txt`：澤菲爾。
 
 目前每份提供一篇示範草稿；第一行可寫標題，段落間空一行。讀取時原樣顯示換行，不執行 HTML。頂部「角色日記」讀取目前帶入角色的內容，拜訪時可在房間點主人的日記，由主人翻開給你看。舊版玩家自行輸入的日記仍保留在本機存檔，但新介面不再顯示或覆寫。

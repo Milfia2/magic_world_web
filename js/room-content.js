@@ -1,5 +1,5 @@
 // Each character owns a private diary and a shorter page they choose to share.
-export const DIARY_PATHS = Object.fromEntries(['abby','thea','gaile','zephyr'].map(id=>[id,{
+export const DIARY_PATHS = Object.fromEntries(['abby','thea','caleb','zephyr'].map(id=>[id,{
   self:`./content/diaries/${id}_self.txt`,
   shared:`./content/diaries/${id}.txt`,
 }]));
@@ -31,7 +31,7 @@ export const ROOM_REACTIONS = {
     gift:line('她從小盒子裡挑出一包茶，放到你手心。','這包給你。嗯……忘記是哪一種了，聞起來很好。'),
     window:line('她靠著窗沿，指向枝頭一個很小的影子。','牠剛剛也在看我們。坐下等一會兒，說不定會再過來。'),
   },
-  gaile: {
+  caleb: {
     diary:line('蓋勒把散頁整理好，翻到一段寫得整齊的地方。','這一頁可以。旁邊有星座的位置，你看不懂的地方再問我。'),
     gift:line('他把抄好的星圖取出來，確認四角沒有折到。','這份本來就多抄了一張。拿去吧，晚上記得帶外套。'),
     window:line('他攏了攏圍巾，先伸手試了一下窗縫的風。','好冷……把窗戶關上吧。星星隔著玻璃也看得到。'),

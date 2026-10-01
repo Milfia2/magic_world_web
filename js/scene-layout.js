@@ -20,7 +20,7 @@ export const sceneObjects = {
     { label: '獅院 · 艾比的房間', action: 'open-room', value: 'abby', x: 14, y: 49, w: 13, h: 26 },
     { label: '蛇院 · 澤菲爾的房間', action: 'open-room', value: 'zephyr', x: 29, y: 51, w: 12, h: 25 },
     { label: '獾院 · 西婭的房間', action: 'open-room', value: 'thea', x: 68, y: 52, w: 12, h: 25 },
-    { label: '鷹院 · 蓋勒的房間', action: 'open-room', value: 'gaile', x: 84, y: 51, w: 12, h: 28 },
+    { label: '鷹院 · 蓋勒的房間', action: 'open-room', value: 'caleb', x: 84, y: 51, w: 12, h: 28 },
   ],
   village: [{ label: '走進服裝店 · 更換造型', action: 'wardrobe', x: 48, y: 58, w: 18, h: 20 }],
   forest: [],
@@ -28,7 +28,7 @@ export const sceneObjects = {
 export const roomObjects = {
   abby: { diary: [14, 58], gift: [63, 55] },
   thea: { diary: [21, 62], gift: [61, 60] },
-  gaile: { diary: [16, 60], gift: [62, 57] },
+  caleb: { diary: [16, 60], gift: [62, 57] },
   zephyr: { diary: [13, 60], gift: [62, 57] },
 };
 

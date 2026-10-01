@@ -22,7 +22,7 @@ FILES = {
 CHARACTERS = {
     "abby": ("艾比·柏金斯", "Abby", "Amby"),
     "thea": ("西婭·赫姆斯", "Thea", "Thea"),
-    "gaile": ("蓋勒·布拉德雷", "Caleb", "Gaile"),
+    "caleb": ("蓋勒·布拉德雷", "Caleb", "Gaile"),
     "zephyr": ("澤菲爾·哈特", "Zephyr", "Zephyr"),
 }
 for key, (name, short, dorm) in CHARACTERS.items():

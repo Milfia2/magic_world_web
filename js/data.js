@@ -2,7 +2,7 @@
 export const characters = [
   { id: 'abby', name: '艾比·柏金斯', short: '艾比', english: 'ABBY PERKINS', house: '獅院', schoolHouse: 'Gryffindor', virtue: '勇氣', color: '#c56f6a', intro: '「這個我會！要不要我教你？」', gift: '勇氣書籤', height:148, birthday:'8 月 1 日', subject:'符咒學', greeting:'你來得正好！我剛練會一個符咒，等一下，先別走！' },
   { id: 'thea', name: '西婭·赫姆斯', short: '西婭', english: 'THEA HOLMES', house: '獾院', schoolHouse: 'Hufflepuff', virtue: '自在', color: '#dcb862', intro: '「嗯……再往前看看吧。」', gift: '花草茶包', height:168, birthday:'10 月 29 日', subject:'奇獸飼育學', greeting:'你看，漂亮的石頭，我剛剛撿到的。……要坐一下嗎？' },
-  { id: 'gaile', name: '蓋勒·布拉德雷', short: '蓋勒', english: 'CALEB BRADLEY', house: '鷹院', schoolHouse: 'Ravenclaw', virtue: '傾聽', color: '#93a9de', intro: '「先坐一下吧，我去拿熱的。」', gift: '星圖筆記', height:175, birthday:'9 月 17 日', subject:'天文學', greeting:'你的東西落在教室了。我順路帶過來，看看有沒有少。' },
+  { id: 'caleb', name: '蓋勒·布拉德雷', short: '蓋勒', english: 'CALEB BRADLEY', house: '鷹院', schoolHouse: 'Ravenclaw', virtue: '傾聽', color: '#93a9de', intro: '「先坐一下吧，我去拿熱的。」', gift: '星圖筆記', height:175, birthday:'9 月 17 日', subject:'天文學', greeting:'你的東西落在教室了。我順路帶過來，看看有沒有少。' },
   { id: 'zephyr', name: '澤菲爾·哈特', short: '澤菲爾', english: 'ZEPHYR HART', house: '蛇院', schoolHouse: 'Slytherin', virtue: '牽掛', color: '#81b59f', intro: '「走啊，去哪都行。」', gift: '銀色緞帶', height:183, birthday:'7 月 6 日', subject:'黑魔法防禦術', position:'魁地奇打擊手', greeting:'走啊，去哪都行。我今天沒什麼安排。……你不會又打算一個人去吧？' },
 ];
 export const places = [

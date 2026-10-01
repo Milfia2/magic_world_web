@@ -1,5 +1,5 @@
 export const CHAT_MEMORY_KEY = 'magic-world:chat-memory:v1';
-const ids = ['abby','gaile','thea','zephyr'];
+const ids = ['abby','caleb','thea','zephyr'];
 export function validatePair(value = {}) {
   const history=value.history ?? [];
   if (!Array.isArray(history) || history.length>10 || history.length%2) throw new Error('Invalid history');
