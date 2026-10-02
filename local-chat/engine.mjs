@@ -4,13 +4,13 @@ import { CHAT_DESTINATIONS, isChatDestination } from '../js/chat-destinations.js
 
 export const identities = {
   abby: { name: '艾比', cue: '直接、熱情、正義感強，語速快，情緒明顯；成績好，不是笨蛋。' },
-  gaile: { name: '蓋勒', cue: '安靜、溫和、句子簡短，會傾聽與實際照顧；不強勢、不輕易直球告白。' },
+  caleb: { name: '蓋勒', cue: '安靜、溫和、句子簡短，會傾聽與實際照顧；不強勢、不輕易直球告白。' },
   thea: { name: '西婭', cue: '慢悠悠、隨性而敏銳，平靜地逗人；迷路不慌，不是單純天然呆。' },
   zephyr: { name: '澤菲爾', cue: '懶散、嘴硬、假裝不在意，實際記得朋友的小事；關心常藏在行動裡。' },
 };
 const resetLines = {
   abby: '咦？我剛剛是不是想說什麼……算了，你再說一次！',
-  gaile: '……好像忘了什麼。沒關係，你說，我在聽。',
+  caleb: '……好像忘了什麼。沒關係，你說，我在聽。',
   thea: '嗯……好像有件事忘掉了。先放著吧。',
   zephyr: '……奇怪，剛剛想說什麼來著。你先說吧。',
 };

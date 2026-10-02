@@ -41,7 +41,7 @@ test('each same-day period changes location, and character preferences affect fr
   }
   assert.ok(count.abby.classroom>count.abby.dorms);
   assert.ok(count.thea.forest>count.thea.classroom);
-  assert.ok(count.gaile.library>count.gaile.pitch);
+  assert.ok(count.caleb.library>count.caleb.pitch);
   assert.ok(count.zephyr.pitch>count.zephyr.library);
 });
 test('the selected player never appears in ordinary scenes, map or private room',()=>{

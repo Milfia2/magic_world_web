@@ -6,7 +6,7 @@ const root=new URL('../llm_set/',import.meta.url);
 const available=await access(new URL('manifest.json',root)).then(()=>true,()=>false);
 const test=(name,fn)=>nodeTest(name,{skip:!available && 'Private backend documents are installed locally, not in Git.'},fn);
 const manifest=available?JSON.parse(await readFile(new URL('manifest.json',root),'utf8')):null;
-const ids=['abby','gaile','thea','zephyr'];
+const ids=['abby','caleb','thea','zephyr'];
 
 test('LLM manifest always loads only the short common world prompt',async()=>{
   assert.equal(manifest.always,'./prompts/world.md');

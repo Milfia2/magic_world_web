@@ -8,7 +8,7 @@ import { AMBIENT_LINES, clickedDialogue, distinctDialogue } from '../js/ambient-
 
 test('all twelve pairings greet the silent player with NPC-only dialogue',()=>{
   const lines=[];
-  for(const player of ['abby','thea','gaile','zephyr'])for(const speaker of ['abby','thea','gaile','zephyr']){
+  for(const player of ['abby','thea','caleb','zephyr'])for(const speaker of ['abby','thea','caleb','zephyr']){
     const line=greetingFor(player,speaker);
     if(player===speaker){assert.equal(line,null);continue;}
     assert.ok(line.action&&line.text);assert.equal('playerText' in line,false);lines.push(line.text);
@@ -23,8 +23,8 @@ test('first greetings are per selected role, saved across reloads, and never sel
   assert.equal(beginGreeting(state,'thea'),false);
   const restored=loadState({getItem:()=>JSON.stringify(state)});
   assert.equal(beginGreeting(restored,'thea'),false);
-  restored.character='gaile';assert.equal(beginGreeting(restored,'thea'),true);
-  assert.equal(beginGreeting(restored,'gaile'),false);
+  restored.character='caleb';assert.equal(beginGreeting(restored,'thea'),true);
+  assert.equal(beginGreeting(restored,'caleb'),false);
   assert.equal(beginGreeting(restored,'bad'),false);
   assert.equal(beginGreeting(loadState(null),'abby'),false);
 });

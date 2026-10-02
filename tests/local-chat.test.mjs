@@ -12,18 +12,18 @@ import { FreeChatClient, normalizeChatUrl } from '../js/free-chat.js';
 // Synthetic profiles keep CI independent of private backend character documents.
 const fixture=await mkdtemp(join(tmpdir(),'magic-chat-test-'));
 after(()=>rm(fixture,{recursive:true,force:true}));
-const profiles={abby:'Abby Perkins',gaile:'Caleb Bradley',thea:'Thea Holmes',zephyr:'Zephyr Hart'};
+const profiles={abby:'Abby Perkins',caleb:'Caleb Bradley',thea:'Thea Holmes',zephyr:'Zephyr Hart'};
 await writeFile(join(fixture,'world.md'),'虛構測試校園，使用繁體中文。');
 await writeFile(join(fixture,'relation.md'),'測試關係：兩人是朋友。');
 for(const [id,name] of Object.entries(profiles))await writeFile(join(fixture,`${id}.md`),`你是 ${name}。這是測試用設定。`);
-await writeFile(join(fixture,'manifest.json'),JSON.stringify({always:'world.md',characters:Object.fromEntries(Object.keys(profiles).map(id=>[id,{short:`${id}.md`} ])),relationships:{'abby:gaile':'relation.md','abby:thea':'relation.md'}}));
+await writeFile(join(fixture,'manifest.json'),JSON.stringify({always:'world.md',characters:Object.fromEntries(Object.keys(profiles).map(id=>[id,{short:`${id}.md`} ])),relationships:{'abby:caleb':'relation.md','abby:thea':'relation.md'}}));
 class ChatEngine extends ProductionEngine {
   constructor(options){super({...options,root:pathToFileURL(fixture+'/')});}
 }
 import { BrowserChatMemory, CHAT_MEMORY_KEY } from '../js/chat-memory.js';
 
 const storage=()=>{const data=new Map();return {getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};};
-const input={protocol:2,player:'abby',speaker:'gaile',scene:'教室',message:'一起看星星吧！'};
+const input={protocol:2,player:'abby',speaker:'caleb',scene:'教室',message:'一起看星星吧！'};
 const result={protocol:2,reply:'好，我帶星圖。',suspicion:1,destination:'observatory'};
 test('the gateway entrypoint recognises its resolved path',()=>{
   assert.equal(isEntrypoint(fileURLToPath(new URL('../local-chat/server.mjs', import.meta.url))),true);
@@ -41,36 +41,36 @@ test('default transport preserves the browser fetch Window receiver',async()=>{
 test('browser persists ten messages per pair across clients and keeps credentials separate',async()=>{
   const local=storage(),session=storage(),calls=[];
   const client=clientWith(local,async(url,options)=>{calls.push(JSON.parse(options.body));return {ok:true,json:async()=>result};},session);
-  for(let i=0;i<8;i++)await client.send('abby','gaile','教室','記住 '+i);
+  for(let i=0;i<8;i++)await client.send('abby','caleb','教室','記住 '+i);
   const restored=new FreeChatClient(session,client.fetcher,local);
-  assert.equal(restored.memory.snapshot('abby:gaile').pair.history.length,10);
-  assert.equal(restored.memory.snapshot('abby:gaile').pair.suspicion,1);
+  assert.equal(restored.memory.snapshot('abby:caleb').pair.history.length,10);
+  assert.equal(restored.memory.snapshot('abby:caleb').pair.suspicion,1);
   await restored.send('abby','thea','庭園','喝茶嗎？');
   assert.deepEqual(calls.at(-1).memory.history,[]);
   assert.doesNotMatch(local.getItem(CHAT_MEMORY_KEY),/test-only|password/);
   assert.doesNotMatch(session.getItem('magic-world:chat'),/記住|星圖/);
-  assert.equal(clientWith(storage()).memory.snapshot('abby:gaile').pair.history.length,0);
+  assert.equal(clientWith(storage()).memory.snapshot('abby:caleb').pair.history.length,0);
 });
 test('the browser client returns an accepted movement destination',async()=>{
-  const response=await clientWith(storage()).send('abby','gaile','教室','一起去天文臺吧');
+  const response=await clientWith(storage()).send('abby','caleb','教室','一起去天文臺吧');
   assert.deepEqual(response,{reply:'好，我帶星圖。',destination:'observatory'});
 });
 test('offline reset clears every browser pair and marks memory lapse for each pair',async()=>{
   const local=storage(),client=clientWith(local);
-  await client.send('abby','gaile','教室','舊秘密');await client.send('abby','thea','庭園','喝茶');
+  await client.send('abby','caleb','教室','舊秘密');await client.send('abby','thea','庭園','喝茶');
   client.fetcher=()=>{throw new Error('offline');};await client.reset();
   const restored=clientWith(local);
   assert.deepEqual(restored.memory.read().pairs,{});assert.equal(restored.memory.read().resetEcho,true);
   assert.doesNotMatch(local.getItem(CHAT_MEMORY_KEY),/舊秘密/);
-  await restored.send('abby','gaile','教室','你好');
-  assert.equal(restored.memory.snapshot('abby:gaile').pair.echoSeen,true);
+  await restored.send('abby','caleb','教室','你好');
+  assert.equal(restored.memory.snapshot('abby:caleb').pair.echoSeen,true);
   assert.equal(restored.memory.snapshot('abby:thea').pair.echoSeen,false);
 });
 test('reset in the same or another tab rejects late replies',async()=>{
   for(const sameTab of [true,false]){
     const local=storage();let finish;
     const client=clientWith(local,()=>new Promise(resolve=>finish=resolve));
-    const pending=client.send('abby','gaile','教室','舊訊息');
+    const pending=client.send('abby','caleb','教室','舊訊息');
     await (sameTab?client:clientWith(local)).reset();
     finish({ok:true,json:async()=>result});
     await assert.rejects(pending,/重置/);assert.deepEqual(client.memory.read().pairs,{});
@@ -78,11 +78,11 @@ test('reset in the same or another tab rejects late replies',async()=>{
 });
 test('concurrent tabs preserve other pairs but reject stale same-pair writes',()=>{
   const local=storage(),a=new BrowserChatMemory(local),b=new BrowserChatMemory(local);
-  const first=a.snapshot('abby:gaile'),second=b.snapshot('abby:gaile'),other=b.snapshot('abby:thea');
+  const first=a.snapshot('abby:caleb'),second=b.snapshot('abby:caleb'),other=b.snapshot('abby:thea');
   const pair={history:[],suspicion:1,echoSeen:true};
-  a.commit('abby:gaile',first,pair);b.commit('abby:thea',other,pair);
+  a.commit('abby:caleb',first,pair);b.commit('abby:thea',other,pair);
   assert.equal(Object.keys(a.read().pairs).length,2);
-  assert.throws(()=>b.commit('abby:gaile',second,pair),/更新或重置/);
+  assert.throws(()=>b.commit('abby:caleb',second,pair),/更新或重置/);
 });
 test('backend uses supplied memory and speaker profile without retaining history',async()=>{
   const calls=[];const engine=new ChatEngine({generate:async messages=>{calls.push(messages);return {reply:'我在聽。',deviation:'mild',destination:'observatory'};}});
@@ -120,7 +120,7 @@ test('corrupt browser records are filtered and write failures are reported',asyn
   const local=storage();local.setItem(CHAT_MEMORY_KEY,'{broken');
   assert.deepEqual(new BrowserChatMemory(local).read().pairs,{});
   const client=clientWith({getItem:()=>null,setItem:()=>{throw new Error('quota');}});
-  await assert.rejects(client.send('abby','gaile','教室','你好'),/無法儲存/);
+  await assert.rejects(client.send('abby','caleb','教室','你好'),/無法儲存/);
   await assert.rejects(client.reset(),/無法儲存/);
   assert.throws(()=>normalizeChatUrl('http://external.example.com'));
 });
