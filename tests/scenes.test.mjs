@@ -56,5 +56,5 @@ test('every friendship pairing and conversation topic has distinct authored line
   for(const topic of ['lost','upset','gift']) assert.equal(new Set(ids.map(id=>dialogueFor(id,null,'atrium',topic).text)).size,4);
   for(const id of ids)for(const scene of ['library','classroom','office','observatory','pitch','forest','village','room/abby'])assert.ok(dialogueFor(id,null,scene).text);
   assert.equal(characters.find(c=>c.id==='thea').english,'THEA HOLMES');
-  assert.equal(characters.find(c=>c.id==='gaile').english,'CALEB BRADLEY');
+  assert.equal(characters.find(c=>c.id==='caleb').english,'CALEB BRADLEY');
 });

@@ -5,7 +5,7 @@ import { createRoomAccess } from '../js/room-access.js';
 import { readDiary, diaryAudience, DIARY_PATHS, ROOM_REACTIONS } from '../js/room-content.js';
 import { AMBIENT_LINES, ambientLine } from '../js/ambient-dialogue.js';
 
-const state={character:'abby',met:['thea','gaile','zephyr']};
+const state={character:'abby',met:['thea','caleb','zephyr']};
 function invited(){const access=createRoomAccess();access.offer('thea','abby','forest','day:1',['thea']);return access;}
 test('only a visible ordinary-scene encounter offers a visit',()=>{
   const access=createRoomAccess();
@@ -25,14 +25,14 @@ test('a guest can enter directly only while the host is in their room',()=>{
   assert.equal(access.canEnter(state,'thea'),false);
 });
 test('the visit is bound to the host, guest, encounter location and time window',()=>{
-  for(const args of [['gaile','abby','forest','day:1'],['thea','zephyr','forest','day:1'],['thea','abby','pitch','day:1'],['thea','abby','forest','day:2']])assert.equal(invited().enter(...args),false);
+  for(const args of [['caleb','abby','forest','day:1'],['thea','zephyr','forest','day:1'],['thea','abby','pitch','day:1'],['thea','abby','forest','day:2']])assert.equal(invited().enter(...args),false);
   const access=invited();assert.equal(access.enter('thea','abby','forest','day:1'),true);
   access.sync('abby','room/thea');assert.equal(access.host(state,'room/thea'),'thea');
   assert.equal(access.canEnter(state,'thea'),true);
   assert.equal(access.enter('thea','abby','forest','day:1'),false);
 });
 test('leaving, switching characters, dismissing an invitation, and reload revoke access',()=>{
-  for(const [guest,route] of [['abby','dorms'],['abby','room/gaile'],['zephyr','room/thea']]){
+  for(const [guest,route] of [['abby','dorms'],['abby','room/caleb'],['zephyr','room/thea']]){
     const access=invited();access.enter('thea','abby','forest','day:1');access.sync(guest,route);access.sync('abby','room/thea');
     assert.equal(access.canEnter(state,'thea'),false);
   }
