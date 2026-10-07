@@ -4,18 +4,19 @@ import { readFile } from 'node:fs/promises';
 import { stories } from '../js/data.js';
 import { readLibraryStory } from '../js/library-content.js';
 
-test('the library exposes all four supplied text files',()=>{
+test('the library exposes all five supplied text files',()=>{
   assert.deepEqual(stories.map(({id,path})=>[id,path]),[
     ['report','./content/library/report.txt'],
     ['report2','./content/library/report2.txt'],
+    ['report3','./content/library/report3.txt'],
     ['secret','./content/library/secret.txt'],
     ['secret2','./content/library/secret2.txt'],
   ]);
 });
 
-test('both reports are ordered columns by the same author',()=>{
+test('all reports are ordered columns by the same author',()=>{
   const reports=stories.filter(story=>story.series==='最前線記者專欄');
-  assert.deepEqual(reports.map(({id,column})=>[id,column]),[['report',1],['report2',2]]);
+  assert.deepEqual(reports.map(({id,column})=>[id,column]),[['report',1],['report2',2],['report3',3]]);
   assert.equal(new Set(reports.map(story=>story.author)).size,1);
 });
 

@@ -1,6 +1,7 @@
 import { test as nodeTest } from 'node:test';
 import assert from 'node:assert/strict';
 import { access, readFile } from 'node:fs/promises';
+import { ChatEngine } from '../local-chat/engine.mjs';
 
 const root=new URL('../llm_set/',import.meta.url);
 const available=await access(new URL('manifest.json',root)).then(()=>true,()=>false);
@@ -25,6 +26,16 @@ test('each speaker has separate short, full, optional examples, and recent memor
     assert.equal(recent.character_id,id);
     assert.ok(Array.isArray(recent.events));
     assert.ok(recent.events.length<=manifest.recent_memory_limit.max);
+  }
+});
+
+test('the backend prompt applies each speaker current short role setting',async()=>{
+  const engine=new ChatEngine({generate:async()=>({reply:'測試',deviation:'none',destination:'none'})});
+  for(const speaker of ids){
+    const player=ids.find(id=>id!==speaker);
+    const short=(await readFile(new URL(manifest.characters[speaker].short,root),'utf8')).trim();
+    const prompt=await engine.prompt(player,speaker,{suspicion:0,echoSeen:true},'圖書館',false);
+    assert.ok(prompt.includes(short),`${speaker} short role setting was not included in the backend prompt`);
   }
 });
 
