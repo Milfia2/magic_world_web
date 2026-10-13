@@ -12,6 +12,9 @@ copy2(ROOT / 'source' / 'Q_Lobby.png', OUT / 'Q_Lobby.png')
 (OUT / 'pets').mkdir(exist_ok=True)
 for pet in (ROOT / 'source' / 'pet').glob('*.png'):
     copy2(pet, OUT / 'pets' / pet.name)
+(OUT / 'interactive').mkdir(exist_ok=True)
+for interaction in (ROOT / 'source' / 'interactive').glob('*.png'):
+    copy2(interaction, OUT / 'interactive' / interaction.name)
 FILES = {
     "atrium": "atrium.png", "library": "library.png", "classroom": "classroom.png",
     "office": "office.png", "observatory": "observatory.png", "dorms": "dormitory_outside.png",

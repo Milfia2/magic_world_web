@@ -1,3 +1,4 @@
+import { createHallInteractions } from './hall-interactions.js';
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 // Feet stay below a conservative floor line in Q_Lobby.png (1448 × 1086).
 export function hallFloorY(bounds){
@@ -30,6 +31,7 @@ export function advanceHallPet(pet,bounds,seconds){
 export function createHallPetController({canvas,elements,placements,random=Math.random,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}){
   let frame=0,last=0,destroyed=false;
   const reduced=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false;
+  const interactions=createHallInteractions(canvas,reduced);
   const velocity=()=>{const speed=18+random()*22,angle=random()*Math.PI*2;return {vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed*.65};};
   const pets=elements.map((element,index)=>{const placement=placements[index],motion=velocity();return {element,x:placement.x,y:placement.y,width:placement.width,height:placement.height,...motion,turnAt:1500+random()*3500,drag:null,suppress:false};});
   function bounds(){const box={width:canvas.clientWidth,height:canvas.clientHeight};return {...box,floorY:hallFloorY(box)};}
@@ -86,6 +88,7 @@ export function createHallPetController({canvas,elements,placements,random=Math.
       }
       paint(pet);
     }
+    interactions.update(pets.map(pet=>({...pet,id:pet.element.dataset.value})),now);
     frame=requestFrame(tick);
   }
   frame=requestFrame(tick);
@@ -93,6 +96,6 @@ export function createHallPetController({canvas,elements,placements,random=Math.
     scatter(nextPlacements){pets.forEach((pet,index)=>applyPlacement(pet,nextPlacements[index]));},
     resize(sizing){pets.forEach((pet,index)=>{const size=sizing[index];pet.element.style.width=`${size.width}px`;pet.element.style.setProperty('--npc-size',`${size.size}px`);pet.width=size.width;pet.height=size.height;Object.assign(pet,constrainHallPet(pet,bounds()));paint(pet);});},
     snapshot(){return pets.map(({element,drag,cleanup,suppress,...pet})=>({...pet}));},
-    destroy(){destroyed=true;cancelFrame(frame);pets.forEach(pet=>pet.cleanup());},
+    destroy(){destroyed=true;cancelFrame(frame);interactions.destroy();pets.forEach(pet=>pet.cleanup());},
   };
 }
