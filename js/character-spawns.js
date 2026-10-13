@@ -27,15 +27,15 @@ export const SPAWN_POINTS = {
     { name: '右側大門前', x: 84, y: 85, height: 32 },
   ],
   forest: [
-    { name: '左側樹影', x: 14, y: 83, height: 30 },
-    { name: '林間左側', x: 37, y: 73, height: 25 },
-    { name: '小徑前方', x: 60, y: 91, height: 39 },
-    { name: '右側樹叢', x: 84, y: 82, height: 31 },
+    { name: '左側樹影', x: 14, y: 78, height: 50 },
+    { name: '林間左側', x: 37, y: 70, height: 35 },
+    { name: '小徑前方', x: 63, y: 68, height: 20 },
+    { name: '右側樹叢', x: 84, y: 112, height: 60 },
   ],
   village: [
     { name: '左側店門口', x: 32, y: 92, height: 38 },
     { name: '中段街道', x: 60, y: 79, height: 25 },
-    { name: '遠方路口', x: 73, y: 70, height: 14 },
+    { name: '遠方路口', x: 71, y: 72, height: 13 },
     { name: '右側看板旁', x: 87, y: 91, height: 39 },
 
   ],

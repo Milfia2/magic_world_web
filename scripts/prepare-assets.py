@@ -22,7 +22,7 @@ FILES = {
 CHARACTERS = {
     "abby": ("艾比·柏金斯", "Abby", "Amby"),
     "thea": ("西婭·赫姆斯", "Thea", "Thea"),
-    "caleb": ("蓋勒·布拉德雷", "Caleb", "Gaile"),
+    "caleb": ("蓋勒·布拉德雷", "Caleb", "Coleb"),
     "zephyr": ("澤菲爾·哈特", "Zephyr", "Zephyr"),
 }
 for key, (name, short, dorm) in CHARACTERS.items():
@@ -30,8 +30,16 @@ for key, (name, short, dorm) in CHARACTERS.items():
     FILES[f"{key}-chibi"] = f"people/霍_小Q_{short}_去背.png"
     FILES[f"{key}-cat"] = f"people/貓咪_去背_{short}.png"
     FILES[f"{key}-room"] = f"Dorm_{dorm}.png"
-    FILES[f"{key}-record"] = f"item/Student_Record_Form_{dorm}.png"
+    FILES[f"{key}-record"] = f"item/Student_Record_Form_{'Caleb' if key == 'caleb' else dorm}.png"
     FILES[f"{key}-riding"] = f"people/騎行_去背_{short}{' ' if key == 'abby' else ''}.png"
+
+POSE_FILES = {
+    "abby-back": "Abby/Abby_back.png", "abby-read": "Abby/Abby_read.png", "abby-fire": "Abby/Abby_fire.png",
+    "caleb-back": "Caleb/Caleb_back.png", "caleb-read": "Caleb/Caleb_read.png", "caleb-write": "Caleb/Caled_write.png",
+    "thea-back": "Thea/Thea_back.png", "thea-sit": "Thea/Thea_sit.png", "thea-squat": "Thea/Thea_squat.png",
+    "zephyr-back": "Zephyr/Zephyr_back.png", "zephyr-buy": "Zephyr/Zephyr_buy.png", "zephyr-withbroom": "Zephyr/Zephyr_withbroom.png",
+}
+FILES.update({key: f"people/{filename}" for key, filename in POSE_FILES.items()})
 
 for key, filename in FILES.items():
     # Skip unchanged artwork when preparing a later batch of supplied assets.

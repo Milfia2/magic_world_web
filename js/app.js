@@ -6,6 +6,7 @@ import { createFlightController } from './flight.js';
 import { dialogueFor } from './dialogue.js';
 import { residentsForScene, scheduleWindow } from './schedule.js';
 import { CHARACTER_SCALE } from './character-spawns.js';
+import { chooseCharacterPose, poseAsset, faceConversation } from './character-poses.js';
 import { createRoomAccess } from './room-access.js';
 import { readDiary, diaryAudience, ROOM_HOST_POINT, ROOM_REACTIONS } from './room-content.js';
 import { ambientLine, clickedDialogue, distinctDialogue } from './ambient-dialogue.js';
@@ -144,9 +145,10 @@ function arrangeScene() {
   const sceneId = artId.endsWith('-room') ? `room/${artId.slice(0,-5)}` : artId;
   const host=roomAccess.host(state,currentRoute());
   layer.classList.toggle('room-npc-layer',Boolean(host));
-  const residents = host ? [{id:host,point:ROOM_HOST_POINT}] : isHall ? characters.map(c=>({id:c.id})) : residentsForScene(sceneId,state.character,new Date(),activeScheduleOverrides());
+  const scheduled = host ? [{id:host,point:ROOM_HOST_POINT}] : isHall ? characters.map(c=>({id:c.id})) : residentsForScene(sceneId,state.character,new Date(),activeScheduleOverrides());
+  const residents = isHall ? scheduled : scheduled.map(({id,point})=>chooseCharacterPose(id,sceneId,point));
   const ids=residents.map(c=>c.id);
-  layer.innerHTML = residents.map(({id,point})=>{const c=character(id);return `<button class="scene-npc ${isHall?'hall-pet':'standing-npc'} ${host?'room-host':''}" data-action="${isHall?'hall-talk':'talk'}" data-value="${id}" ${point?`data-spot="${point.name}"`:''} aria-label="與${c.short}交談"><img src="${asset(id+(isHall?'-chibi':''))}" alt="${c.short}" draggable="false"><span>${c.short} <i aria-hidden="true">✧</i></span></button>`;}).join('');
+  layer.innerHTML = residents.map(({id,point,pose})=>{const c=character(id);return `<button class="scene-npc ${isHall?'hall-pet':'standing-npc'} ${host?'room-host':''}" data-action="${isHall?'hall-talk':'talk'}" data-value="${id}" ${pose?`data-pose="${pose}"`:''} ${point?`data-spot="${point.name}"`:''} aria-label="與${c.short}交談"><img src="${asset(isHall?id+'-chibi':poseAsset(id,pose))}" alt="${c.short}" draggable="false"><span>${c.short} <i aria-hidden="true">✧</i></span></button>`;}).join('');
   const image = canvas.querySelector('.scene-art, :scope > img');
   const anchors = [...canvas.querySelectorAll('[data-anchor]')];
   let hallPets;
@@ -252,6 +254,7 @@ function render() {
 function talk(id, topic = 'scene', hall = false) {
   const c = character(id); if (!c) return;
   if(id===state.character)return;
+  faceConversation(document.querySelector(`.scene-npc[data-value="${id}"]`),id,asset);
   closeHeadConversation();
   if (!hall && state.character && id !== state.character) { remember(state.met,id); save(); }
   const visibleIds = !hall && !pitchGame && document.querySelector('.immersive')?.dataset.scene === currentRoute()
@@ -460,7 +463,14 @@ document.addEventListener('submit',async e=>{
       if(form.isConnected&&replyNode?.isConnected&&player===state.character&&route===currentRoute()){
         replyNode.textContent=response.reply;form.elements.message.value='';
         const destination=places.find(place=>place.id===response.destination);
-        if(destination){moveCharacter(speaker,destination.id);status.textContent=`${character(speaker).short}答應前往${destination.name}；本時段會在那裡等你。`;}
+        if(destination){
+          moveCharacter(speaker,destination.id);
+          if(destination.id===route)status.textContent=`${character(speaker).short}會留在${destination.name}，本時段在這裡陪你。`;
+          else {
+            render();
+            showDialog(`${character(speaker).short}已前往${destination.name}`,`<p class="spoken-line">${esc(response.reply)}</p><p>本時段會在${destination.name}等你。</p>`,link(destination.id,`前往${destination.name}`,'primary')+button('close','稍後再去'));
+          }
+        }
         else status.textContent=freeChat.memory.persistent?'對話記憶已儲存在此瀏覽器。':'瀏覽器儲存不可用，記憶只保留至關閉或重新整理頁面。';
       }
     }
@@ -480,6 +490,15 @@ setInterval(refreshSchedule,15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSchedule();});
 dialog.addEventListener('close',()=>{if(dialog.open)return;dialog.classList.remove('room-conversation');document.querySelector('.immersive')?.classList.remove('room-speaking');roomAccess.dismiss();queueMicrotask(refreshSchedule);});
 render();
+// DEV CHARACTER PANEL START — remove this block and js/dev-character-panel.js before publishing.
+// if (['localhost','127.0.0.1','[::1]'].includes(location.hostname)) {
+//   import('./dev-character-panel.js').then(({mountCharacterPanel})=>mountCharacterPanel({
+//     getPlayer:()=>state.character,
+//     move:(id,destination)=>{moveCharacter(id,destination);pitchGame=false;history.pushState(null,'',`#/${destination}`);render();},
+//     reset:()=>{scheduleOverrides.clear();render();},
+//   })).catch(error=>console.warn('角色測試面板無法載入',error));
+// }
+// DEV CHARACTER PANEL END
 registerAgentTools({
   readProgress: () => ({ character: state.character, visited: [...state.visited], met: [...state.met], pets: [...petsFor(state)], read: [...state.read], catches: state.catches }),
   navigate: async destination => {

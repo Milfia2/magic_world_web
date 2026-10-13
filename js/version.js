@@ -1,6 +1,7 @@
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.7.0';
 
 export const VERSION_HISTORY = [
+  {version:'0.7.0',date:'2026-10-12',title:'場景角色動作',changes:['新增 12 張動作立繪，進入場景時隨機選擇','背面、閱讀、寫字點擊後轉正面；特殊動作限定地點且交談時保留','西婭坐姿與蹲姿各有獨立位置及大小設定']},
   {version:'0.6.0',date:'2026-09-30',title:'瀏覽器對話記憶',changes:['近期對話、身分疑慮與重置狀態改存 localStorage','後端不再保存對話 session，僅讀取本輪提供的記憶並推理','支援離線重置與跨分頁舊回覆防護；連線密碼仍只存 sessionStorage']},
   {version:'0.5.1',date:'2026-09-30',title:'瀏覽器對話連線修正',changes:['修正 fetch 呼叫綁定造成 Illegal invocation、請求未送出的問題','新增模擬瀏覽器 Window 綁定的回歸測試']},
   {version:'0.5.0',date:'2026-09-30',title:'本機角色自由對話',changes:['前端可用連線密碼連接本機 Qwen API','角色設定僅由後端按需讀取，對話依角色配對保存近期記憶與疑慮','重置會清除自由對話記憶，保留短暫遺忘感；預留固定 HTTPS Tunnel 設定']},

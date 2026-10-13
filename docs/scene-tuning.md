@@ -57,7 +57,17 @@ node --input-type=module -e "import {scheduledRoster} from './js/schedule.js'; c
 
 `js/greetings.js` 的 `GREETINGS` 按「操縱角色 → 遇到的角色」保存 12 組招呼，僅有對方動作 `action` 與招呼 `text`，不包含玩家台詞。對方會依照玩家身分主動打招呼。存檔的 `greeted` 以角色配對記錄，換角色分開計算；重新整理不重複招呼。
 
-## 宿舍半身對話介面
+## 角色動作與西婭的特殊站位（0.7.0）
+
+設定集中在 `js/character-poses.js`。`CHARACTER_POSES` 的 `scenes` 控制特殊動作允許出現的場景；`keepOnTalk: true` 表示點擊交談保留動作。沒有 `scenes` 的 back/read/write 與正面一起抽選，點擊後改為正面。每次進入場景抽一次，不設自動切換計時器；調整視窗大小不會重抽。
+
+`THEA_POSE_POINTS.atrium.sit`、`.atrium.squat`、`.forest.sit`、`.forest.squat` 各自控制西婭坐姿／蹲姿的位置。`x` 是圖片底部中心左右位置、`y` 是底部上下位置、`height` 是圖片高度，單位皆是原始背景圖的百分比。坐姿的 `y` 不是臀部位置：請將臀部對準石椅或岩石，再調整腳底位置；現在提供初始參考位置，可依美術需求微調，也可在陣列新增候選點。
+
+其他動作沿用 `js/character-spawns.js` 的位置及 `CHARACTER_SCALE`，不覆蓋你原本設定的站位。行程仍決定人物是否在場，不會因新增動作而增加角色數量。Q 版大廳與魁地奇遊戲沿用原本 Q 版／騎行圖片，不參與動作抽選。角色選擇畫面維持正面。
+
+素材由 `scripts/prepare-assets.py` 轉成 `assets/<角色>-<動作>.webp`；`Caled_write.png` 特別對應到 `caleb-write.webp`。新增不同動作時需同時更新素材腳本和 `CHARACTER_POSES`，建置檢查會確認列出的動作素材存在。
+
+## 宿舍半身對話介面（樣式調整）
 
 進房不會自動交談；點人物、日記、小物或窗戶才展開半身立繪與畫面下方半透明框。關閉可按「結束對話」、叉號或 Escape，之後恢復房間全身立繪與物品操作。閱讀完整日記仍使用獨立閱讀視窗。
 
