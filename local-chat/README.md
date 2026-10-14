@@ -13,6 +13,11 @@ node scripts/pull-local-model.mjs
 node scripts/serve.mjs
 ```
 
+cd C:\cloudflared
+.\cloudflared.exe tunnel --url http://127.0.0.1:8787
+修改
+const API_BASE_URL = "https://xxxx.trycloudflare.com";
+
 在網站「對話連線」填 `http://127.0.0.1:8787` 和 `.local-llm/config.json` 的 `password`，再選角色、點其他人物，於對話泡泡下方輸入。初次模型載入較久。同時間只進行一個推理請求，其他人會收到稍後再試提示。
 
 執行檔約 1.5 GB，模型約數 GB；下載後日常啟動只需要 `start-local-chat.ps1`。模型埠為 11435，對話 API 埠為 8787，均只監聽本機。
